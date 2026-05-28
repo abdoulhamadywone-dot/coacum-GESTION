@@ -62,6 +62,7 @@ const AuthenticatedApp = () => {
 };
 
 
+// v2
 function App() {
 
   return (
