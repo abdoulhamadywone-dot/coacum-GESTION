@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Plus, Search, Edit2, Trash2, UserCheck, UserX } from "lucide-react";
@@ -11,6 +12,8 @@ import { toast } from "sonner";
 
 export default function Membres() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
@@ -54,7 +57,7 @@ export default function Membres() {
           <h1 className="text-2xl font-bold text-foreground">Membres</h1>
           <p className="text-sm text-muted-foreground">{membres.length} membres enregistrés</p>
         </div>
-        <Button onClick={openCreate} className="gap-2"><Plus className="h-4 w-4" /> Ajouter un membre</Button>
+        {isAdmin && <Button onClick={openCreate} className="gap-2"><Plus className="h-4 w-4" /> Ajouter un membre</Button>}
       </div>
 
       <div className="relative">
@@ -94,12 +97,14 @@ export default function Membres() {
                     </td>
                     <td className="p-3 text-muted-foreground hidden md:table-cell">{m.date_adhesion || "—"}</td>
                     <td className="p-3 text-muted-foreground hidden md:table-cell">{m.telephone || "—"}</td>
+                    {isAdmin && (
                     <td className="p-3 text-right">
                       <div className="flex justify-end gap-1">
                         <button onClick={() => openEdit(m)} className="p-1.5 rounded-md hover:bg-muted transition-colors"><Edit2 className="h-3.5 w-3.5 text-muted-foreground" /></button>
                         <button onClick={() => setDeleteId(m.id)} className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors"><Trash2 className="h-3.5 w-3.5 text-destructive" /></button>
                       </div>
                     </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

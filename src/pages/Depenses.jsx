@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Plus, Edit2, Trash2 } from "lucide-react";
@@ -13,6 +14,8 @@ const RUBRIQUES = ["Transport", "Dejeuner", "Collation", "Communication", "Locat
 
 export default function Depenses() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [editing, setEditing] = useState(null);
@@ -57,7 +60,7 @@ export default function Depenses() {
           <h1 className="text-2xl font-bold text-foreground">Dépenses</h1>
           <p className="text-sm text-muted-foreground">Total : {total.toLocaleString()} MRU</p>
         </div>
-        <Button onClick={openCreate} className="gap-2"><Plus className="h-4 w-4" /> Ajouter une dépense</Button>
+        {isAdmin && <Button onClick={openCreate} className="gap-2"><Plus className="h-4 w-4" /> Ajouter une dépense</Button>}
       </div>
 
       {isLoading ? (
@@ -89,12 +92,14 @@ export default function Depenses() {
                     <td className="p-3 text-muted-foreground hidden md:table-cell">{d.date || "—"}</td>
                     <td className="p-3 text-muted-foreground hidden md:table-cell">{d.evenement || "—"}</td>
                     <td className="p-3 text-right font-medium text-destructive">{d.montant?.toLocaleString()} MRU</td>
+                    {isAdmin && (
                     <td className="p-3 text-right">
                       <div className="flex justify-end gap-1">
                         <button onClick={() => openEdit(d)} className="p-1.5 rounded-md hover:bg-muted"><Edit2 className="h-3.5 w-3.5 text-muted-foreground" /></button>
                         <button onClick={() => setDeleteId(d.id)} className="p-1.5 rounded-md hover:bg-destructive/10"><Trash2 className="h-3.5 w-3.5 text-destructive" /></button>
                       </div>
                     </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

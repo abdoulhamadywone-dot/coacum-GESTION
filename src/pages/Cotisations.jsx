@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Plus, Edit2, Trash2, Filter } from "lucide-react";
@@ -13,6 +14,8 @@ const MOIS = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", 
 
 export default function Cotisations() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [editing, setEditing] = useState(null);
@@ -55,7 +58,7 @@ export default function Cotisations() {
           <h1 className="text-2xl font-bold text-foreground">Cotisations</h1>
           <p className="text-sm text-muted-foreground">Total filtré : {total.toLocaleString()} MRU</p>
         </div>
-        <Button onClick={openCreate} className="gap-2"><Plus className="h-4 w-4" /> Enregistrer un paiement</Button>
+        {isAdmin && <Button onClick={openCreate} className="gap-2"><Plus className="h-4 w-4" /> Enregistrer un paiement</Button>}
       </div>
 
       <div className="flex items-center gap-3">
@@ -96,12 +99,14 @@ export default function Cotisations() {
                     <td className="p-3 text-muted-foreground">{c.mois}</td>
                     <td className="p-3 text-muted-foreground">{c.annee}</td>
                     <td className="p-3 text-right font-medium text-primary">{c.montant} MRU</td>
+                    {isAdmin && (
                     <td className="p-3 text-right">
                       <div className="flex justify-end gap-1">
                         <button onClick={() => openEdit(c)} className="p-1.5 rounded-md hover:bg-muted"><Edit2 className="h-3.5 w-3.5 text-muted-foreground" /></button>
                         <button onClick={() => setDeleteId(c.id)} className="p-1.5 rounded-md hover:bg-destructive/10"><Trash2 className="h-3.5 w-3.5 text-destructive" /></button>
                       </div>
                     </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

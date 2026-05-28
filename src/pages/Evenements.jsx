@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Plus, Edit2, Trash2, MapPin, CalendarDays } from "lucide-react";
@@ -15,6 +16,8 @@ const STATUT_LABELS = { planifié: "Planifié", en_cours: "En cours", terminé: 
 
 export default function Evenements() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [editing, setEditing] = useState(null);
@@ -52,7 +55,7 @@ export default function Evenements() {
           <h1 className="text-2xl font-bold text-foreground">Événements</h1>
           <p className="text-sm text-muted-foreground">{evenements.length} événements</p>
         </div>
-        <Button onClick={openCreate} className="gap-2"><Plus className="h-4 w-4" /> Nouvel événement</Button>
+        {isAdmin && <Button onClick={openCreate} className="gap-2"><Plus className="h-4 w-4" /> Nouvel événement</Button>}
       </div>
 
       {isLoading ? (
@@ -80,10 +83,12 @@ export default function Evenements() {
                     {evt.lieu && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{evt.lieu}</span>}
                   </div>
                 </div>
+                {isAdmin && (
                 <div className="flex gap-1 ml-2">
                   <button onClick={() => openEdit(evt)} className="p-1.5 rounded-md hover:bg-muted"><Edit2 className="h-3.5 w-3.5 text-muted-foreground" /></button>
                   <button onClick={() => setDeleteId(evt.id)} className="p-1.5 rounded-md hover:bg-destructive/10"><Trash2 className="h-3.5 w-3.5 text-destructive" /></button>
                 </div>
+                )}
               </div>
             </div>
           ))}
