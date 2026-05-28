@@ -1,0 +1,35 @@
+{
+  "name": "Membre",
+  "type": "object",
+  "properties": {
+    "nom": {
+      "type": "string",
+      "title": "Nom"
+    },
+    "statut": {
+      "type": "string",
+      "title": "Statut",
+      "enum": [
+        "actif",
+        "inactif"
+      ],
+      "default": "actif"
+    },
+    "date_adhesion": {
+      "type": "string",
+      "format": "date",
+      "title": "Date d'adh\u00e9sion"
+    },
+    "telephone": {
+      "type": "string",
+      "title": "T\u00e9l\u00e9phone"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Notes"
+    }
+  },
+  "required": [
+    "nom"
+  ]
+}

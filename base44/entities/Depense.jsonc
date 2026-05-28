@@ -1,0 +1,41 @@
+{
+  "name": "Depense",
+  "type": "object",
+  "properties": {
+    "rubrique": {
+      "type": "string",
+      "title": "Rubrique",
+      "enum": [
+        "Transport",
+        "Dejeuner",
+        "Collation",
+        "Communication",
+        "Location",
+        "Mat\u00e9riel",
+        "Autre"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "montant": {
+      "type": "number",
+      "title": "Montant (MRU)"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "title": "Date"
+    },
+    "evenement": {
+      "type": "string",
+      "title": "\u00c9v\u00e9nement li\u00e9"
+    }
+  },
+  "required": [
+    "rubrique",
+    "montant",
+    "date"
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "name": "Cotisation",
+  "type": "object",
+  "properties": {
+    "membre_id": {
+      "type": "string",
+      "title": "ID Membre"
+    },
+    "membre_nom": {
+      "type": "string",
+      "title": "Nom du membre"
+    },
+    "mois": {
+      "type": "string",
+      "title": "Mois"
+    },
+    "annee": {
+      "type": "number",
+      "title": "Ann\u00e9e"
+    },
+    "montant": {
+      "type": "number",
+      "title": "Montant (MRU)",
+      "default": 50
+    },
+    "paye": {
+      "type": "boolean",
+      "title": "Pay\u00e9",
+      "default": true
+    }
+  },
+  "required": [
+    "membre_nom",
+    "mois",
+    "annee",
+    "montant"
+  ]
+}

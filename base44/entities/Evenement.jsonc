@@ -1,0 +1,47 @@
+{
+  "name": "Evenement",
+  "type": "object",
+  "properties": {
+    "titre": {
+      "type": "string",
+      "title": "Titre"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "date_debut": {
+      "type": "string",
+      "format": "date",
+      "title": "Date de d\u00e9but"
+    },
+    "date_fin": {
+      "type": "string",
+      "format": "date",
+      "title": "Date de fin"
+    },
+    "lieu": {
+      "type": "string",
+      "title": "Lieu"
+    },
+    "statut": {
+      "type": "string",
+      "title": "Statut",
+      "enum": [
+        "planifi\u00e9",
+        "en_cours",
+        "termin\u00e9",
+        "annul\u00e9"
+      ],
+      "default": "planifi\u00e9"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Notes"
+    }
+  },
+  "required": [
+    "titre",
+    "date_debut"
+  ]
+}
