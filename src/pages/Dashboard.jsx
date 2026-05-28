@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Users, Wallet, Receipt, Calendar } from "lucide-react";
 import StatCard from "../components/StatCard";
+import ExportPDF from "../components/ExportPDF";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 const COLORS = ["hsl(142,55%,40%)", "hsl(30,90%,55%)", "hsl(197,37%,24%)", "hsl(43,74%,66%)", "hsl(0,84%,60%)"];
@@ -33,6 +34,11 @@ export default function Dashboard() {
 
   return (
     <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">
+      {/* Actions */}
+      <div className="flex justify-end">
+        <ExportPDF cotisations={cotisations} depenses={depenses} />
+      </div>
+
       {/* Hero */}
       <div className="relative rounded-2xl overflow-hidden h-48 md:h-56">
         <img
