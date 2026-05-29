@@ -3,7 +3,6 @@ import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Plus, Edit2, Trash2, Filter } from "lucide-react";
-import ExportPDF from "../components/ExportPDF";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -59,10 +58,7 @@ export default function Cotisations() {
           <h1 className="text-2xl font-bold text-foreground">Cotisations</h1>
           <p className="text-sm text-muted-foreground">Total filtré : {total.toLocaleString()} MRU</p>
         </div>
-        <div className="flex gap-2">
-          <ExportPDF cotisations={cotisations} depenses={[]} />
-          {isAdmin && <Button onClick={openCreate} className="gap-2"><Plus className="h-4 w-4" /> Enregistrer un paiement</Button>}
-        </div>
+        {isAdmin && <Button onClick={openCreate} className="gap-2"><Plus className="h-4 w-4" /> Enregistrer un paiement</Button>}
       </div>
 
       <div className="flex items-center gap-3">
