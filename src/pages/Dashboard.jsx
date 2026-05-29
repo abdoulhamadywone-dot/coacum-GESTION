@@ -57,10 +57,10 @@ export default function Dashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Membres" value={membres.length} subtitle={`${membresActifs} actifs`} icon={Users} color="primary" />
-        <StatCard title="Cotisations" value={`${totalCotisations.toLocaleString()} MRU`} subtitle={`${cotisations.length} paiements`} icon={Wallet} color="accent" />
-        <StatCard title="Dépenses" value={`${totalDepenses.toLocaleString()} MRU`} subtitle={`${depenses.length} entrées`} icon={Receipt} color="destructive" />
-        <StatCard title="Événements" value={evenements.length} icon={Calendar} color="muted" />
+        <StatCard title="Membres" value={membres.length} subtitle={`${membresActifs} actifs`} icon={Users} color="primary" href="/membres" />
+        <StatCard title="Cotisations" value={`${totalCotisations.toLocaleString()} MRU`} subtitle={`${cotisations.length} paiements`} icon={Wallet} color="accent" href="/cotisations" />
+        <StatCard title="Dépenses" value={`${totalDepenses.toLocaleString()} MRU`} subtitle={`${depenses.length} entrées`} icon={Receipt} color="destructive" href="/depenses" />
+        <StatCard title="Événements" value={evenements.length} icon={Calendar} color="muted" href="/evenements" />
       </div>
 
       {/* Solde */}
