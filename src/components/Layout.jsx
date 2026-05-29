@@ -1,6 +1,7 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Wallet, Receipt, Calendar, LogOut, Menu, X } from "lucide-react";
+import { LayoutDashboard, Users, Wallet, Receipt, Calendar, LogOut, Menu, X, ShieldCheck } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 
 const navItems = [
@@ -14,6 +15,8 @@ const navItems = [
 export default function Layout() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
 
   return (
     <div className="flex h-screen bg-background font-inter">
@@ -41,6 +44,19 @@ export default function Layout() {
               </Link>
             );
           })}
+          {isAdmin && (
+            <Link
+              to="/administration"
+              className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                location.pathname === '/administration'
+                  ? 'bg-sidebar-accent text-sidebar-primary'
+                  : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+              }`}
+            >
+              <ShieldCheck className="h-4 w-4" />
+              Administration
+            </Link>
+          )}
         </nav>
         <div className="p-3 border-t border-sidebar-border">
           <button
@@ -80,6 +96,20 @@ export default function Layout() {
                 {item.label}
               </Link>
             ))}
+            {isAdmin && (
+              <Link
+                to="/administration"
+                onClick={() => setMobileOpen(false)}
+                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium ${
+                  location.pathname === '/administration'
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:bg-muted'
+                }`}
+              >
+                <ShieldCheck className="h-4 w-4" />
+                Administration
+              </Link>
+            )}
           </div>
         )}
 
