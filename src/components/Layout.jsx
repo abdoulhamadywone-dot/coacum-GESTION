@@ -61,7 +61,7 @@ export default function Layout() {
         <div className="p-3 border-t border-sidebar-border">
           <button
             onClick={() => base44.auth.logout()}
-            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 w-full transition-all"
+            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-red-300 hover:text-red-100 hover:bg-red-500/20 w-full transition-all"
           >
             <LogOut className="h-4 w-4" />
             Déconnexion
@@ -110,6 +110,13 @@ export default function Layout() {
                 Administration
               </Link>
             )}
+            <button
+              onClick={() => base44.auth.logout()}
+              className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 w-full transition-all"
+            >
+              <LogOut className="h-4 w-4" />
+              Déconnexion
+            </button>
           </div>
         )}
 
