@@ -89,7 +89,7 @@ export default function Cotisations() {
                   <th className="text-left p-3 font-medium text-muted-foreground">Mois</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Année</th>
                   <th className="text-right p-3 font-medium text-muted-foreground">Montant</th>
-                  <th className="text-right p-3 font-medium text-muted-foreground">Actions</th>
+                  {isAdmin && <th className="text-right p-3 font-medium text-muted-foreground">Actions</th>}
                 </tr>
               </thead>
               <tbody>

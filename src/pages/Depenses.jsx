@@ -81,7 +81,7 @@ export default function Depenses() {
                   <th className="text-left p-3 font-medium text-muted-foreground hidden md:table-cell">Date</th>
                   <th className="text-left p-3 font-medium text-muted-foreground hidden md:table-cell">Événement</th>
                   <th className="text-right p-3 font-medium text-muted-foreground">Montant</th>
-                  <th className="text-right p-3 font-medium text-muted-foreground">Actions</th>
+                  {isAdmin && <th className="text-right p-3 font-medium text-muted-foreground">Actions</th>}
                 </tr>
               </thead>
               <tbody>

@@ -82,7 +82,7 @@ export default function Membres() {
                   <th className="text-left p-3 font-medium text-muted-foreground">Statut</th>
                   <th className="text-left p-3 font-medium text-muted-foreground hidden md:table-cell">Adhésion</th>
                   <th className="text-left p-3 font-medium text-muted-foreground hidden md:table-cell">Téléphone</th>
-                  <th className="text-right p-3 font-medium text-muted-foreground">Actions</th>
+                  {isAdmin && <th className="text-right p-3 font-medium text-muted-foreground">Actions</th>}
                 </tr>
               </thead>
               <tbody>
