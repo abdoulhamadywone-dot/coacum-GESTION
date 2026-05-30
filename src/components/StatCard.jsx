@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 
 export default function StatCard({ title, value, subtitle, icon: Icon, color = "primary", href }) {
   const colorMap = {
@@ -9,29 +10,32 @@ export default function StatCard({ title, value, subtitle, icon: Icon, color = "
   };
 
   const inner = (
-    <div className="flex items-start justify-between">
-      <div>
-        <p className="text-sm text-muted-foreground font-medium">{title}</p>
-        <p className="text-2xl font-bold mt-1 text-foreground">{value}</p>
-        {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
+    <>
+      <div className="flex items-start justify-between mb-4">
+        {Icon && (
+          <div className={`p-2.5 rounded-xl ${colorMap[color]}`}>
+            <Icon className="h-5 w-5" />
+          </div>
+        )}
+        {href && (
+          <ArrowRight className="h-4 w-4 text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+        )}
       </div>
-      {Icon && (
-        <div className={`p-2.5 rounded-lg ${colorMap[color]}`}>
-          <Icon className="h-5 w-5" />
-        </div>
-      )}
-    </div>
+      <p className="text-2xl font-bold text-foreground">{value}</p>
+      <p className="text-sm font-medium text-muted-foreground mt-0.5">{title}</p>
+      {subtitle && <p className="text-xs text-muted-foreground/70 mt-1">{subtitle}</p>}
+    </>
   );
 
   if (href) {
     return (
-      <Link to={href} className="bg-card rounded-xl border border-border p-5 hover:shadow-md hover:border-primary/40 transition-all cursor-pointer block">
+      <Link to={href} className="group bg-card rounded-2xl border border-border p-5 hover:shadow-lg hover:border-primary/30 hover:-translate-y-0.5 transition-all duration-200 block">
         {inner}
       </Link>
     );
   }
   return (
-    <div className="bg-card rounded-xl border border-border p-5 hover:shadow-md transition-shadow">
+    <div className="bg-card rounded-2xl border border-border p-5">
       {inner}
     </div>
   );

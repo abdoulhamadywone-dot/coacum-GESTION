@@ -21,22 +21,27 @@ export default function Layout() {
   return (
     <div className="flex h-screen bg-background font-inter">
       {/* Sidebar desktop */}
-      <aside className="hidden md:flex w-64 flex-col bg-sidebar text-sidebar-foreground">
+      <aside className="hidden md:flex w-64 flex-col bg-sidebar text-sidebar-foreground shadow-xl">
         <div className="p-6 border-b border-sidebar-border">
-          <h1 className="text-xl font-bold tracking-tight">COACUM</h1>
-          <p className="text-xs text-sidebar-foreground/60 mt-1">Cultures Urbaines Mauritanie</p>
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-sidebar-primary flex items-center justify-center text-white font-bold text-sm">C</div>
+            <div>
+              <h1 className="text-base font-bold tracking-tight leading-none">COACUM</h1>
+              <p className="text-xs text-sidebar-foreground/50 mt-0.5">Cultures Urbaines</p>
+            </div>
+          </div>
         </div>
-        <nav className="flex-1 p-3 space-y-1">
+        <nav className="flex-1 p-3 space-y-0.5">
           {navItems.map((item) => {
             const active = location.pathname === item.path;
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
                   active
-                    ? "bg-sidebar-accent text-sidebar-primary"
-                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                    ? "bg-sidebar-primary text-white shadow-sm"
+                    : "text-sidebar-foreground/65 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
                 }`}
               >
                 <item.icon className="h-4 w-4" />
@@ -47,10 +52,10 @@ export default function Layout() {
           {isAdmin && (
             <Link
               to="/administration"
-              className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
                 location.pathname === '/administration'
-                  ? 'bg-sidebar-accent text-sidebar-primary'
-                  : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+                  ? 'bg-sidebar-primary text-white shadow-sm'
+                  : 'text-sidebar-foreground/65 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground'
               }`}
             >
               <ShieldCheck className="h-4 w-4" />
@@ -58,10 +63,16 @@ export default function Layout() {
             </Link>
           )}
         </nav>
-        <div className="p-3 border-t border-sidebar-border">
+        <div className="p-3 border-t border-sidebar-border space-y-1">
+          {user && (
+            <div className="px-4 py-2.5 mb-1">
+              <p className="text-xs font-semibold text-sidebar-foreground/90 truncate">{user.full_name}</p>
+              <p className="text-xs text-sidebar-foreground/45 truncate">{user.email}</p>
+            </div>
+          )}
           <button
             onClick={() => base44.auth.logout()}
-            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-red-300 hover:text-red-100 hover:bg-red-500/20 w-full transition-all"
+            className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-red-300 hover:text-red-100 hover:bg-red-500/20 w-full transition-all"
           >
             <LogOut className="h-4 w-4" />
             Déconnexion
