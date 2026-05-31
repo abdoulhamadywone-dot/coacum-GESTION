@@ -1,0 +1,22 @@
+{
+  "name": "ArticleLike",
+  "type": "object",
+  "properties": {
+    "article_id": {
+      "type": "string",
+      "title": "Article ID"
+    },
+    "type": {
+      "type": "string",
+      "title": "Type",
+      "enum": [
+        "like",
+        "dislike"
+      ]
+    }
+  },
+  "required": [
+    "article_id",
+    "type"
+  ]
+}

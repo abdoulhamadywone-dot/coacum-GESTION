@@ -1,50 +1,190 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Calendar, User } from "lucide-react";
+import { Plus, Upload, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { toast } from "sonner";
+import { useAuth } from "@/lib/AuthContext";
+import ArticleCard from "../components/ArticleCard";
 
 export default function Articles() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
+  const queryClient = useQueryClient();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [form, setForm] = useState({ titre: "", contenu: "", auteur: "", statut: "publié", date_publication: new Date().toISOString().slice(0,10), image_url: "", document_url: "", document_nom: "" });
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingDoc, setUploadingDoc] = useState(false);
+
   const { data: articles = [], isLoading } = useQuery({
     queryKey: ["articles-publies"],
     queryFn: () => base44.entities.Article.filter({ statut: "publié" }, "-date_publication"),
   });
 
+  const createArt = useMutation({
+    mutationFn: (data) => base44.entities.Article.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["articles-publies"] });
+      queryClient.invalidateQueries({ queryKey: ["articles"] });
+      setDialogOpen(false);
+      setForm({ titre: "", contenu: "", auteur: user?.full_name || "", statut: "publié", date_publication: new Date().toISOString().slice(0,10), image_url: "", document_url: "", document_nom: "" });
+      toast.success("Article publié !");
+    },
+  });
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingImage(true);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    setForm(f => ({ ...f, image_url: file_url }));
+    setUploadingImage(false);
+    toast.success("Image uploadée");
+  };
+
+  const handleDocUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingDoc(true);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    setForm(f => ({ ...f, document_url: file_url, document_nom: file.name }));
+    setUploadingDoc(false);
+    toast.success("Document uploadé");
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!form.titre.trim() || !form.contenu.trim()) return;
+    createArt.mutate({ ...form, auteur: form.auteur || user?.full_name || "Admin" });
+  };
+
+  const openDialog = () => {
+    setForm({ titre: "", contenu: "", auteur: user?.full_name || "", statut: "publié", date_publication: new Date().toISOString().slice(0,10), image_url: "", document_url: "", document_nom: "" });
+    setDialogOpen(true);
+  };
+
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Actualités</h1>
-        <p className="text-muted-foreground mt-1">Les dernières nouvelles de COACUM</p>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Actualités</h1>
+          <p className="text-muted-foreground mt-1">Les dernières nouvelles de COACUM</p>
+        </div>
+        {isAdmin && (
+          <Button onClick={openDialog} className="gap-2">
+            <Plus className="h-4 w-4" /> Ajouter un article
+          </Button>
+        )}
       </div>
 
+      {/* Articles list */}
       {isLoading ? (
         <div className="flex justify-center py-16"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>
       ) : articles.length === 0 ? (
-        <div className="text-center py-20 text-muted-foreground">
-          <p className="text-xl font-medium">Aucun article publié</p>
-          <p className="text-sm mt-2">Revenez bientôt pour les actualités</p>
+        <div className="text-center py-20">
+          <p className="text-xl font-medium text-muted-foreground">Aucun article publié</p>
+          <p className="text-sm text-muted-foreground mt-2">Revenez bientôt pour les actualités</p>
+          {isAdmin && (
+            <Button onClick={openDialog} className="mt-4 gap-2" variant="outline">
+              <Plus className="h-4 w-4" /> Créer le premier article
+            </Button>
+          )}
         </div>
       ) : (
         <div className="space-y-8">
-          {articles.map((a, idx) => (
-            <article key={a.id} className={`bg-card rounded-2xl border border-border overflow-hidden ${idx === 0 ? 'shadow-md' : ''}`}>
-              {a.image_url && (
-                <img src={a.image_url} alt={a.titre} className="w-full h-56 object-cover" />
-              )}
-              <div className="p-6">
-                <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground mb-3">
-                  {a.date_publication && (
-                    <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" />{a.date_publication}</span>
-                  )}
-                  {a.auteur && (
-                    <span className="flex items-center gap-1.5"><User className="h-3.5 w-3.5" />{a.auteur}</span>
-                  )}
-                </div>
-                <h2 className="text-xl font-bold text-foreground mb-3">{a.titre}</h2>
-                <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{a.contenu}</p>
-              </div>
-            </article>
+          {articles.map(a => (
+            <ArticleCard key={a.id} article={a} isAdmin={isAdmin} />
           ))}
         </div>
       )}
+
+      {/* Create Article Dialog (Admin) */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>Nouvel article</DialogTitle></DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Titre *</label>
+              <Input value={form.titre} onChange={e => setForm({...form, titre: e.target.value})} placeholder="Titre de l'article" />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Contenu *</label>
+              <Textarea value={form.contenu} onChange={e => setForm({...form, contenu: e.target.value})} placeholder="Écrivez votre article..." rows={7} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm font-medium">Auteur</label>
+                <Input value={form.auteur} onChange={e => setForm({...form, auteur: e.target.value})} placeholder="Nom de l'auteur" />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Date de publication</label>
+                <Input type="date" value={form.date_publication} onChange={e => setForm({...form, date_publication: e.target.value})} />
+              </div>
+            </div>
+
+            {/* Photo upload */}
+            <div>
+              <label className="text-sm font-medium block mb-1.5">Photo</label>
+              {form.image_url ? (
+                <div className="relative">
+                  <img src={form.image_url} alt="" className="w-full h-40 object-cover rounded-xl" />
+                  <button type="button" onClick={() => setForm(f => ({...f, image_url: ""}))}
+                    className="absolute top-2 right-2 p-1 bg-black/50 rounded-full text-white hover:bg-black/70">
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <label className={`flex items-center justify-center gap-2 border-2 border-dashed border-border rounded-xl p-6 cursor-pointer hover:bg-muted/50 transition-colors ${uploadingImage ? 'opacity-50' : ''}`}>
+                  <Upload className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">{uploadingImage ? "Upload en cours..." : "Cliquer pour ajouter une photo"}</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploadingImage} />
+                </label>
+              )}
+            </div>
+
+            {/* Document upload */}
+            <div>
+              <label className="text-sm font-medium block mb-1.5">Document (PDF, Word, etc.)</label>
+              {form.document_url ? (
+                <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-xl border border-border">
+                  <span className="text-sm flex-1 truncate">📎 {form.document_nom}</span>
+                  <button type="button" onClick={() => setForm(f => ({...f, document_url: "", document_nom: ""}))}
+                    className="p-1 hover:bg-destructive/10 rounded">
+                    <X className="h-3.5 w-3.5 text-destructive" />
+                  </button>
+                </div>
+              ) : (
+                <label className={`flex items-center justify-center gap-2 border-2 border-dashed border-border rounded-xl p-4 cursor-pointer hover:bg-muted/50 transition-colors ${uploadingDoc ? 'opacity-50' : ''}`}>
+                  <Upload className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">{uploadingDoc ? "Upload en cours..." : "Cliquer pour joindre un document"}</span>
+                  <input type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" className="hidden" onChange={handleDocUpload} disabled={uploadingDoc} />
+                </label>
+              )}
+            </div>
+
+            {/* Statut */}
+            <div className="flex items-center gap-3">
+              <label className="text-sm font-medium">Statut</label>
+              <div className="flex gap-2">
+                {["brouillon","publié"].map(s => (
+                  <button key={s} type="button" onClick={() => setForm({...form, statut: s})}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${form.statut === s ? 'bg-primary text-white border-primary' : 'border-border text-muted-foreground hover:bg-muted'}`}>
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <Button type="submit" className="w-full" disabled={createArt.isPending || uploadingImage || uploadingDoc}>
+              {createArt.isPending ? "Publication..." : "Publier l'article"}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

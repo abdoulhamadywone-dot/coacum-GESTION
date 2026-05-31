@@ -1,0 +1,22 @@
+{
+  "name": "ArticleComment",
+  "type": "object",
+  "properties": {
+    "article_id": {
+      "type": "string",
+      "title": "Article ID"
+    },
+    "contenu": {
+      "type": "string",
+      "title": "Commentaire"
+    },
+    "auteur_nom": {
+      "type": "string",
+      "title": "Auteur"
+    }
+  },
+  "required": [
+    "article_id",
+    "contenu"
+  ]
+}
