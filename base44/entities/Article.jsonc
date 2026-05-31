@@ -1,0 +1,40 @@
+{
+  "name": "Article",
+  "type": "object",
+  "properties": {
+    "titre": {
+      "type": "string",
+      "title": "Titre"
+    },
+    "contenu": {
+      "type": "string",
+      "title": "Contenu"
+    },
+    "image_url": {
+      "type": "string",
+      "title": "Image"
+    },
+    "auteur": {
+      "type": "string",
+      "title": "Auteur"
+    },
+    "statut": {
+      "type": "string",
+      "title": "Statut",
+      "enum": [
+        "brouillon",
+        "publi\u00e9"
+      ],
+      "default": "brouillon"
+    },
+    "date_publication": {
+      "type": "string",
+      "format": "date",
+      "title": "Date de publication"
+    }
+  },
+  "required": [
+    "titre",
+    "contenu"
+  ]
+}

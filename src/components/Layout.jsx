@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Wallet, Receipt, Calendar, LogOut, Menu, X, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, Users, Wallet, Receipt, Calendar, LogOut, Menu, X, ShieldCheck, Newspaper } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
@@ -10,6 +10,7 @@ const navItems = [
   { path: "/cotisations", label: "Cotisations", icon: Wallet },
   { path: "/depenses", label: "Dépenses", icon: Receipt },
   { path: "/evenements", label: "Événements", icon: Calendar },
+  { path: "/articles", label: "Actualités", icon: Newspaper },
 ];
 
 export default function Layout() {
