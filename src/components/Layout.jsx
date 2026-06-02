@@ -22,6 +22,7 @@ function getDateFr() {
 export default function Layout() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [showNotif, setShowNotif] = useState(false);
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
   const [dark, setDark] = useDarkMode();
@@ -36,7 +37,8 @@ export default function Layout() {
     return (parseInt(yb)*100+(moisNums[mb]||0))-(parseInt(ya)*100+(moisNums[ma]||0));
   }).slice(0,3);
   const paidInRecent = new Set(cotisations.filter(c => recentCols.includes(`${(c.mois||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}|${c.annee}`)).map(c=>c.membre_nom));
-  const lateCount = membres.filter(m => m.statut === 'actif' && !paidInRecent.has(m.nom)).length;
+  const lateMembersList = membres.filter(m => m.statut === 'actif' && !paidInRecent.has(m.nom));
+  const lateCount = lateMembersList.length;
 
   return (
     <div className="flex h-screen bg-background font-inter overflow-hidden">
@@ -90,6 +92,37 @@ export default function Layout() {
             </div>
           )}
           <div className="flex items-center gap-2 px-2">
+            {/* Cloche notifications desktop */}
+            <div className="relative">
+              <button
+                onClick={() => setShowNotif(!showNotif)}
+                className="relative p-2 rounded-xl hover:bg-sidebar-accent/60 text-sidebar-foreground/70 transition-all"
+              >
+                <Bell className="h-4 w-4" />
+                {lateCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-destructive text-white text-[9px] font-bold rounded-full flex items-center justify-center animate-pulse">{lateCount}</span>
+                )}
+              </button>
+              {showNotif && (
+                <div className="absolute bottom-10 left-0 w-72 bg-card border border-border rounded-2xl shadow-xl p-4 z-50 animate-in fade-in-0 slide-in-from-bottom-2 duration-200">
+                  <div className="flex items-center justify-between border-b border-border pb-2 mb-3">
+                    <h4 className="font-bold text-xs text-foreground">Alertes Cotisations</h4>
+                    {lateCount > 0 && <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-semibold">{lateCount} en retard</span>}
+                  </div>
+                  <div className="space-y-1 max-h-52 overflow-y-auto">
+                    {lateMembersList.length > 0 ? lateMembersList.map((m) => (
+                      <Link key={m.id} to="/membres" onClick={() => setShowNotif(false)}
+                        className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                        <span className="text-xs font-medium text-foreground truncate">{m.nom}</span>
+                        <span className="text-[10px] text-destructive font-semibold ml-2">En retard</span>
+                      </Link>
+                    )) : (
+                      <p className="text-xs text-muted-foreground text-center py-3">Aucun retard 🎉</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
             <button onClick={() => setDark(!dark)}
               className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent/60 transition-all">
               {dark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
@@ -111,10 +144,33 @@ export default function Layout() {
             <span className="font-bold gradient-text">COACUM</span>
           </div>
           <div className="flex items-center gap-2">
-            {lateCount > 0 && (
+            {(
               <div className="relative">
-                <Bell className="h-5 w-5 text-muted-foreground" />
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-white text-[9px] font-bold rounded-full flex items-center justify-center">{lateCount}</span>
+                <button onClick={() => setShowNotif(!showNotif)} className="relative p-1">
+                  <Bell className="h-5 w-5 text-muted-foreground" />
+                  {lateCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-white text-[9px] font-bold rounded-full flex items-center justify-center animate-pulse">{lateCount}</span>
+                  )}
+                </button>
+                {showNotif && (
+                  <div className="absolute top-8 right-0 w-72 bg-card border border-border rounded-2xl shadow-xl p-4 z-50 animate-in fade-in-0 duration-200">
+                    <div className="flex items-center justify-between border-b border-border pb-2 mb-3">
+                      <h4 className="font-bold text-xs text-foreground">Alertes Cotisations</h4>
+                      {lateCount > 0 && <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-semibold">{lateCount} en retard</span>}
+                    </div>
+                    <div className="space-y-1 max-h-52 overflow-y-auto">
+                      {lateMembersList.length > 0 ? lateMembersList.map((m) => (
+                        <Link key={m.id} to="/membres" onClick={() => { setShowNotif(false); setMobileOpen(false); }}
+                          className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                          <span className="text-xs font-medium text-foreground truncate">{m.nom}</span>
+                          <span className="text-[10px] text-destructive font-semibold ml-2">En retard</span>
+                        </Link>
+                      )) : (
+                        <p className="text-xs text-muted-foreground text-center py-3">Aucun retard 🎉</p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
             <button onClick={() => setDark(!dark)} className="p-1.5 rounded-lg hover:bg-muted">

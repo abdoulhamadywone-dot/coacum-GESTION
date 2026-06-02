@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Users, Wallet, Receipt, Calendar, TrendingUp, TrendingDown, AlertTriangle, Trophy } from "lucide-react";
 import StatCard from "../components/StatCard";
@@ -103,15 +104,21 @@ export default function Dashboard() {
 
       {/* Late members alert */}
       {lateMembers.length > 0 && (
-        <div className="flex items-start gap-3 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
-          <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-semibold text-amber-800 dark:text-amber-400 text-sm">{lateMembers.length} membre{lateMembers.length > 1 ? 's' : ''} en retard de cotisation</p>
-            <p className="text-xs text-amber-600/80 dark:text-amber-500/80 mt-0.5">
-              {lateMembers.slice(0,5).map(m => m.nom).join(', ')}{lateMembers.length > 5 ? ` et ${lateMembers.length-5} autres...` : ''}
-            </p>
+        <Link
+          to="/membres"
+          className="flex items-start justify-between gap-3 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 hover:border-amber-400 hover:shadow-md transition-all duration-200"
+        >
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-amber-800 dark:text-amber-400 text-sm">{lateMembers.length} membre{lateMembers.length > 1 ? 's' : ''} en retard de cotisation</p>
+              <p className="text-xs text-amber-600/80 dark:text-amber-500/80 mt-0.5">
+                {lateMembers.slice(0,5).map(m => m.nom).join(', ')}{lateMembers.length > 5 ? ` et ${lateMembers.length-5} autres...` : ''}
+              </p>
+            </div>
           </div>
-        </div>
+          <span className="text-xs font-semibold text-amber-700 whitespace-nowrap">Gérer →</span>
+        </Link>
       )}
 
       {/* Stats grid */}
