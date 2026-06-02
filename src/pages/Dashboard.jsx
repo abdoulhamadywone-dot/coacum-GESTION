@@ -99,7 +99,7 @@ export default function Dashboard() {
           </h1>
           <p className="text-white/70 text-sm md:text-base mt-1">Coalition des Acteurs des Cultures Urbaines de Mauritanie</p>
         </div>
-        <div className="absolute top-4 right-4 no-print"><ExportPDF cotisations={cotisations} depenses={depenses} /></div>
+        <div className="absolute top-4 right-4 no-print"><ExportPDF cotisations={cotisations} depenses={depenses} membres={membres} /></div>
       </div>
 
       {/* Late members alert */}
@@ -145,7 +145,7 @@ export default function Dashboard() {
           <p className="text-[10px] text-white/50 mt-1">Taux de couverture</p>
         </div>
 
-        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+        <Link to="/evenements" className="bg-card rounded-2xl border border-border p-6 shadow-sm hover:border-primary/40 hover:shadow-md transition-all duration-200 block">
           <p className="text-sm font-medium text-muted-foreground mb-3">⏰ Prochain événement</p>
           {prochainEvenement ? (
             <>
@@ -161,7 +161,8 @@ export default function Dashboard() {
           ) : (
             <p className="text-muted-foreground text-sm">Aucun événement à venir</p>
           )}
-        </div>
+          <p className="text-xs text-primary/60 mt-3 font-medium">Voir tous les événements →</p>
+        </Link>
       </div>
 
       {/* Area Chart: Cotisations vs Dépenses */}

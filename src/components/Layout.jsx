@@ -153,23 +153,26 @@ export default function Layout() {
                   )}
                 </button>
                 {showNotif && (
-                  <div className="absolute top-8 right-0 w-72 bg-card border border-border rounded-2xl shadow-xl p-4 z-50 animate-in fade-in-0 duration-200">
-                    <div className="flex items-center justify-between border-b border-border pb-2 mb-3">
-                      <h4 className="font-bold text-xs text-foreground">Alertes Cotisations</h4>
-                      {lateCount > 0 && <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-semibold">{lateCount} en retard</span>}
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowNotif(false)} />
+                    <div className="fixed top-14 right-4 w-72 bg-card border border-border rounded-2xl shadow-xl p-4 z-50">
+                      <div className="flex items-center justify-between border-b border-border pb-2 mb-3">
+                        <h4 className="font-bold text-xs text-foreground">Alertes Cotisations</h4>
+                        {lateCount > 0 && <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-semibold">{lateCount} en retard</span>}
+                      </div>
+                      <div className="space-y-1 max-h-52 overflow-y-auto">
+                        {lateMembersList.length > 0 ? lateMembersList.map((m) => (
+                          <Link key={m.id} to="/membres" onClick={() => { setShowNotif(false); setMobileOpen(false); }}
+                            className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                            <span className="text-xs font-medium text-foreground truncate">{m.nom}</span>
+                            <span className="text-[10px] text-destructive font-semibold ml-2">En retard</span>
+                          </Link>
+                        )) : (
+                          <p className="text-xs text-muted-foreground text-center py-3">Aucun retard 🎉</p>
+                        )}
+                      </div>
                     </div>
-                    <div className="space-y-1 max-h-52 overflow-y-auto">
-                      {lateMembersList.length > 0 ? lateMembersList.map((m) => (
-                        <Link key={m.id} to="/membres" onClick={() => { setShowNotif(false); setMobileOpen(false); }}
-                          className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                          <span className="text-xs font-medium text-foreground truncate">{m.nom}</span>
-                          <span className="text-[10px] text-destructive font-semibold ml-2">En retard</span>
-                        </Link>
-                      )) : (
-                        <p className="text-xs text-muted-foreground text-center py-3">Aucun retard 🎉</p>
-                      )}
-                    </div>
-                  </div>
+                  </>
                 )}
               </div>
             )}
