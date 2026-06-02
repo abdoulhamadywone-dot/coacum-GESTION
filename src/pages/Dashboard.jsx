@@ -1,12 +1,23 @@
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Users, Wallet, Receipt, Calendar, TrendingUp, TrendingDown } from "lucide-react";
+import { Users, Wallet, Receipt, Calendar, TrendingUp, TrendingDown, AlertTriangle, Trophy } from "lucide-react";
 import StatCard from "../components/StatCard";
 import ExportPDF from "../components/ExportPDF";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import { useAuth } from "@/lib/AuthContext";
+import useAnimatedCounter from "../hooks/useAnimatedCounter";
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend, BarChart, Bar, ReferenceLine
+} from "recharts";
 
-const COLORS = ["hsl(142,55%,40%)", "hsl(30,90%,55%)", "hsl(197,37%,24%)", "hsl(43,74%,66%)", "hsl(0,84%,60%)"];
+const COLORS = ["hsl(38,95%,48%)", "hsl(25,95%,53%)", "hsl(197,37%,32%)", "hsl(142,55%,40%)", "hsl(0,84%,60%)"];
+const MEDALS = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"];
+const MOIS_NUMS = { JANVIER:1,FEVRIER:2,MARS:3,AVRIL:4,MAI:5,JUIN:6,JUILLET:7,AOUT:8,AOÛT:8,SEPTEMBRE:9,OCTOBRE:10,NOVEMBRE:11,DECEMBRE:12 };
+
+function AnimatedStat({ value, suffix = "", prefix = "" }) {
+  const animated = useAnimatedCounter(value);
+  return <span>{prefix}{animated.toLocaleString()}{suffix}</span>;
+}
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -20,76 +31,125 @@ export default function Dashboard() {
   const membresActifs = membres.filter((m) => m.statut === "actif").length;
   const solde = totalCotisations - totalDepenses;
 
-  const cotByMonth = {};
-  cotisations.forEach((c) => {
-    const key = `${c.mois} ${c.annee}`;
-    cotByMonth[key] = (cotByMonth[key] || 0) + (c.montant || 0);
+  // Late members (actif, not paid in last 3 months of data)
+  const allCols = [...new Set(cotisations.map(c => {
+    const mNorm = (c.mois||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    return `${mNorm}|${c.annee}`;
+  }))].sort((a,b)=>{
+    const [ma,ya]=a.split('|'), [mb,yb]=b.split('|');
+    return (parseInt(yb)*100+(MOIS_NUMS[mb]||0))-(parseInt(ya)*100+(MOIS_NUMS[ma]||0));
   });
-  const cotChartData = Object.entries(cotByMonth).map(([name, total]) => ({ name, total })).slice(-8);
+  const recentCols = allCols.slice(0,3);
+  const paidInRecent = new Set(cotisations.filter(c => {
+    const mNorm = (c.mois||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    return recentCols.includes(`${mNorm}|${c.annee}`);
+  }).map(c=>c.membre_nom));
+  const lateMembers = membres.filter(m => m.statut === 'actif' && !paidInRecent.has(m.nom));
 
+  // Monthly revenue vs expenses chart
+  const monthData = {};
+  cotisations.forEach(c => {
+    const mNorm = (c.mois||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    const key = `${mNorm}|${c.annee}`;
+    if (!monthData[key]) monthData[key] = { name: `${c.mois?.slice(0,3)} ${String(c.annee).slice(2)}`, cotisations: 0, depenses: 0, _sort: (parseInt(c.annee)*100)+(MOIS_NUMS[mNorm]||0) };
+    monthData[key].cotisations += (c.montant || 0);
+  });
+  depenses.forEach(d => {
+    if (!d.date) return;
+    const date = new Date(d.date);
+    const mois = date.toLocaleDateString('fr-FR', { month: 'short' });
+    const an = String(date.getFullYear()).slice(2);
+    const key = `${mois} ${an}`;
+    if (!monthData[key]) monthData[key] = { name: key, cotisations: 0, depenses: 0, _sort: date.getFullYear()*100+date.getMonth() };
+    monthData[key].depenses += (d.montant || 0);
+  });
+  const areaData = Object.values(monthData).sort((a,b) => a._sort - b._sort).slice(-8);
+
+  // Expenses by category
   const depByRub = {};
-  depenses.forEach((d) => {
-    depByRub[d.rubrique] = (depByRub[d.rubrique] || 0) + (d.montant || 0);
-  });
-  const depChartData = Object.entries(depByRub).map(([name, value]) => ({ name, value }));
+  depenses.forEach(d => { depByRub[d.rubrique] = (depByRub[d.rubrique] || 0) + (d.montant || 0); });
+  const pieData = Object.entries(depByRub).map(([name, value]) => ({ name, value }));
 
+  // Top 5 contributors
+  const contrib = {};
+  cotisations.forEach(c => { contrib[c.membre_nom] = (contrib[c.membre_nom] || 0) + (c.montant || 0); });
+  const top5 = Object.entries(contrib).sort((a,b) => b[1]-a[1]).slice(0,5);
+  const maxContrib = top5[0]?.[1] || 1;
+
+  // Prochain événement
   const prochainEvenement = evenements
     .filter(e => e.statut === 'planifié' && e.date_debut)
-    .sort((a, b) => new Date(a.date_debut) - new Date(b.date_debut))[0];
+    .sort((a,b) => new Date(a.date_debut) - new Date(b.date_debut))[0];
+
+  // Countdown
+  const daysUntil = prochainEvenement ? Math.ceil((new Date(prochainEvenement.date_debut) - new Date()) / 86400000) : null;
 
   return (
     <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
 
-      {/* Hero */}
-      <div className="relative rounded-2xl overflow-hidden h-52 md:h-64">
-        <img
-          src="https://media.base44.com/images/public/6a18cbfaee75eb22cc08c34e/2b2c866bd_generated_image.png"
-          alt="COACUM"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/50 to-transparent" />
+      {/* Hero Banner */}
+      <div className="relative rounded-2xl overflow-hidden h-52 md:h-64 shadow-xl">
+        <img src="https://media.base44.com/images/public/6a18cbfaee75eb22cc08c34e/2b2c866bd_generated_image.png" alt="COACUM" className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
         <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-10">
-          <p className="text-xs font-semibold uppercase tracking-widest text-white/60 mb-1">Tableau de bord</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-amber-400 mb-1">Tableau de bord</p>
           <h1 className="text-2xl md:text-4xl font-bold text-white leading-tight">
             Bienvenue{user?.full_name ? `, ${user.full_name.split(' ')[0]}` : ''} 👋
           </h1>
-          <p className="text-white/70 text-sm md:text-base mt-1">
-            Coalition des Acteurs des Cultures Urbaines de Mauritanie
-          </p>
+          <p className="text-white/70 text-sm md:text-base mt-1">Coalition des Acteurs des Cultures Urbaines de Mauritanie</p>
         </div>
-        <div className="absolute top-4 right-4">
-          <ExportPDF cotisations={cotisations} depenses={depenses} />
-        </div>
+        <div className="absolute top-4 right-4 no-print"><ExportPDF cotisations={cotisations} depenses={depenses} /></div>
       </div>
 
-      {/* Stats */}
+      {/* Late members alert */}
+      {lateMembers.length > 0 && (
+        <div className="flex items-start gap-3 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
+          <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-amber-800 dark:text-amber-400 text-sm">{lateMembers.length} membre{lateMembers.length > 1 ? 's' : ''} en retard de cotisation</p>
+            <p className="text-xs text-amber-600/80 dark:text-amber-500/80 mt-0.5">
+              {lateMembers.slice(0,5).map(m => m.nom).join(', ')}{lateMembers.length > 5 ? ` et ${lateMembers.length-5} autres...` : ''}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Stats grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Membres" value={membres.length} subtitle={`${membresActifs} actifs`} icon={Users} color="primary" href="/membres" />
-        <StatCard title="Cotisations" value={`${totalCotisations.toLocaleString()} MRU`} subtitle={`${cotisations.length} paiements`} icon={Wallet} color="accent" href="/cotisations" />
-        <StatCard title="Dépenses" value={`${totalDepenses.toLocaleString()} MRU`} subtitle={`${depenses.length} entrées`} icon={Receipt} color="destructive" href="/depenses" />
-        <StatCard title="Événements" value={evenements.length} subtitle={`${evenements.filter(e => e.statut === 'planifié').length} planifiés`} icon={Calendar} color="muted" href="/evenements" />
+        <StatCard title="Membres" value={<AnimatedStat value={membres.length} />} subtitle={`${membresActifs} actifs`} icon={Users} color="primary" href="/membres" />
+        <StatCard title="Cotisations" value={<AnimatedStat value={totalCotisations} suffix=" MRU" />} subtitle={`${cotisations.length} paiements`} icon={Wallet} color="accent" href="/cotisations" />
+        <StatCard title="Dépenses" value={<AnimatedStat value={totalDepenses} suffix=" MRU" />} subtitle={`${depenses.length} entrées`} icon={Receipt} color="destructive" href="/depenses" />
+        <StatCard title="Événements" value={<AnimatedStat value={evenements.length} />} subtitle={`${evenements.filter(e=>e.statut==='planifié').length} planifiés`} icon={Calendar} color="muted" href="/evenements" />
       </div>
 
       {/* Solde + prochain événement */}
       <div className="grid md:grid-cols-2 gap-4">
-        <div className={`rounded-2xl p-6 text-white ${solde >= 0 ? 'bg-gradient-to-br from-primary to-emerald-700' : 'bg-gradient-to-br from-destructive to-red-700'}`}>
+        <div className={`rounded-2xl p-6 text-white shadow-lg ${solde >= 0 ? 'bg-gradient-to-br from-amber-500 to-orange-600' : 'bg-gradient-to-br from-red-500 to-red-700'}`}>
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm font-medium text-white/80">Solde financier</p>
             {solde >= 0 ? <TrendingUp className="h-5 w-5 text-white/70" /> : <TrendingDown className="h-5 w-5 text-white/70" />}
           </div>
-          <p className="text-4xl font-bold">{solde.toLocaleString()} MRU</p>
+          <p className="text-4xl font-bold"><AnimatedStat value={Math.abs(solde)} prefix={solde < 0 ? "-" : "+"} suffix=" MRU" /></p>
           <p className="text-xs text-white/60 mt-2">Cotisations − Dépenses</p>
+          {/* Mini progress bar */}
+          <div className="mt-4 h-1.5 bg-white/20 rounded-full overflow-hidden">
+            <div className="h-full bg-white/60 rounded-full transition-all duration-1000" style={{width: `${Math.min(100, (totalCotisations/(totalCotisations+totalDepenses||1))*100)}%`}} />
+          </div>
+          <p className="text-[10px] text-white/50 mt-1">Taux de couverture</p>
         </div>
 
-        <div className="bg-card rounded-2xl border border-border p-6">
-          <p className="text-sm font-medium text-muted-foreground mb-3">Prochain événement</p>
+        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+          <p className="text-sm font-medium text-muted-foreground mb-3">⏰ Prochain événement</p>
           {prochainEvenement ? (
             <>
               <p className="text-lg font-bold text-foreground">{prochainEvenement.titre}</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                {prochainEvenement.date_debut}{prochainEvenement.lieu ? ` · ${prochainEvenement.lieu}` : ''}
-              </p>
-              <span className="inline-block mt-3 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary">Planifié</span>
+              <p className="text-sm text-muted-foreground mt-1">{prochainEvenement.date_debut}{prochainEvenement.lieu ? ` · ${prochainEvenement.lieu}` : ''}</p>
+              {daysUntil !== null && daysUntil >= 0 && (
+                <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full">
+                  <span className="text-2xl font-bold text-primary">{daysUntil}</span>
+                  <span className="text-xs text-primary/70">jour{daysUntil !== 1 ? 's' : ''} restant{daysUntil !== 1 ? 's' : ''}</span>
+                </div>
+              )}
             </>
           ) : (
             <p className="text-muted-foreground text-sm">Aucun événement à venir</p>
@@ -97,49 +157,78 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Charts */}
+      {/* Area Chart: Cotisations vs Dépenses */}
+      <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+        <h3 className="font-semibold text-foreground mb-1">Revenus vs Dépenses</h3>
+        <p className="text-xs text-muted-foreground mb-5">Évolution sur les 8 derniers mois</p>
+        {areaData.length > 0 ? (
+          <ResponsiveContainer width="100%" height={260}>
+            <AreaChart data={areaData}>
+              <defs>
+                <linearGradient id="gradCot" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(38,95%,48%)" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(38,95%,48%)" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="gradDep" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(0,84%,60%)" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(0,84%,60%)" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(38,15%,90%)" vertical={false} />
+              <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} />
+              <YAxis fontSize={10} axisLine={false} tickLine={false} />
+              <Tooltip formatter={(v, n) => [`${v.toLocaleString()} MRU`, n === 'cotisations' ? 'Cotisations' : 'Dépenses']} />
+              <Area type="monotone" dataKey="cotisations" stroke="hsl(38,95%,48%)" strokeWidth={2} fill="url(#gradCot)" />
+              <Area type="monotone" dataKey="depenses" stroke="hsl(0,84%,60%)" strokeWidth={2} fill="url(#gradDep)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="flex items-center justify-center h-32 text-muted-foreground text-sm">Aucune donnée</div>
+        )}
+      </div>
+
+      {/* Top 5 + Pie */}
       <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-card rounded-2xl border border-border p-6">
-          <h3 className="font-semibold text-foreground mb-1">Cotisations par mois</h3>
-          <p className="text-xs text-muted-foreground mb-5">Historique des 8 derniers mois</p>
-          {cotChartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={240}>
-              <BarChart data={cotChartData} barSize={28}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(140,10%,92%)" vertical={false} />
-                <XAxis dataKey="name" fontSize={10} tick={{ fill: "hsl(150,5%,50%)" }} axisLine={false} tickLine={false} />
-                <YAxis fontSize={10} tick={{ fill: "hsl(150,5%,50%)" }} axisLine={false} tickLine={false} />
-                <Tooltip formatter={(v) => [`${v.toLocaleString()} MRU`, 'Total']} />
-                <Bar dataKey="total" fill="hsl(142,55%,40%)" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-              <Wallet className="h-8 w-8 mb-2 opacity-30" />
-              <p className="text-sm">Aucune donnée de cotisation</p>
-            </div>
-          )}
+        {/* Top 5 Contributors */}
+        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+          <h3 className="font-semibold text-foreground mb-1 flex items-center gap-2"><Trophy className="h-4 w-4 text-primary" /> Top 5 Contributeurs</h3>
+          <p className="text-xs text-muted-foreground mb-4">Membres ayant le plus cotisé</p>
+          <div className="space-y-3">
+            {top5.map(([nom, total], idx) => (
+              <div key={nom} className="flex items-center gap-3">
+                <span className="text-lg w-6 text-center">{MEDALS[idx]}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-sm font-medium text-foreground truncate">{nom}</p>
+                    <p className="text-xs font-bold text-primary ml-2">{total.toLocaleString()} MRU</p>
+                  </div>
+                  <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                    <div className="h-full rounded-full transition-all duration-700"
+                      style={{ width: `${(total/maxContrib)*100}%`, background: idx === 0 ? 'hsl(38,95%,48%)' : idx === 1 ? 'hsl(200,80%,55%)' : idx === 2 ? 'hsl(25,95%,53%)' : 'hsl(142,55%,45%)' }} />
+                  </div>
+                </div>
+              </div>
+            ))}
+            {top5.length === 0 && <p className="text-muted-foreground text-sm">Aucune donnée</p>}
+          </div>
         </div>
 
-        <div className="bg-card rounded-2xl border border-border p-6">
+        {/* Pie chart */}
+        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
           <h3 className="font-semibold text-foreground mb-1">Dépenses par catégorie</h3>
-          <p className="text-xs text-muted-foreground mb-5">Répartition des dépenses</p>
-          {depChartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={240}>
+          <p className="text-xs text-muted-foreground mb-4">Répartition des dépenses</p>
+          {pieData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={220}>
               <PieChart>
-                <Pie data={depChartData} cx="50%" cy="45%" innerRadius={55} outerRadius={90} dataKey="value" paddingAngle={3}>
-                  {depChartData.map((_, i) => (
-                    <Cell key={i} fill={COLORS[i % COLORS.length]} stroke="none" />
-                  ))}
+                <Pie data={pieData} cx="50%" cy="44%" innerRadius={55} outerRadius={85} dataKey="value" paddingAngle={3}>
+                  {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} stroke="none" />)}
                 </Pie>
                 <Tooltip formatter={(v) => [`${v.toLocaleString()} MRU`, '']} />
                 <Legend iconType="circle" iconSize={8} formatter={(v) => <span className="text-xs text-muted-foreground">{v}</span>} />
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-              <Receipt className="h-8 w-8 mb-2 opacity-30" />
-              <p className="text-sm">Aucune dépense enregistrée</p>
-            </div>
+            <div className="flex items-center justify-center h-32 text-muted-foreground text-sm"><Receipt className="h-6 w-6 mr-2 opacity-30" />Aucune dépense</div>
           )}
         </div>
       </div>
