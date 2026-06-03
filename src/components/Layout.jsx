@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Wallet, Receipt, Calendar, LogOut, Menu, X, ShieldCheck, Newspaper, Sun, Moon, Bell } from "lucide-react";
+import { LayoutDashboard, Users, Wallet, Receipt, Calendar, LogOut, Menu, X, ShieldCheck, Newspaper, Sun, Moon, Bell, Bot } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
@@ -13,6 +13,7 @@ const navItems = [
   { path: "/depenses", label: "Dépenses", icon: Receipt },
   { path: "/evenements", label: "Événements", icon: Calendar },
   { path: "/articles", label: "Actualités", icon: Newspaper },
+  { path: "/assistant", label: "Assistant IA", icon: Bot },
 ];
 
 function getDateFr() {
