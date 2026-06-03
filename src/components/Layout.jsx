@@ -7,14 +7,14 @@ import { useQuery } from "@tanstack/react-query";
 import useDarkMode from "../hooks/useDarkMode";
 
 const navItems = [
-  { path: "/", label: "Tableau de bord", icon: LayoutDashboard },
-  { path: "/membres", label: "Membres", icon: Users },
-  { path: "/cotisations", label: "Cotisations", icon: Wallet },
-  { path: "/depenses", label: "Dépenses", icon: Receipt },
-  { path: "/evenements", label: "Événements", icon: Calendar },
-  { path: "/articles", label: "Actualités", icon: Newspaper },
-  { path: "/assistant", label: "Assistant IA", icon: Bot },
-];
+{ path: "/", label: "Tableau de bord", icon: LayoutDashboard },
+{ path: "/membres", label: "Membres", icon: Users },
+{ path: "/cotisations", label: "Cotisations", icon: Wallet },
+{ path: "/depenses", label: "Dépenses", icon: Receipt },
+{ path: "/evenements", label: "Événements", icon: Calendar },
+{ path: "/articles", label: "Actualités", icon: Newspaper },
+{ path: "/assistant", label: "Assistant COACUM", icon: Bot }];
+
 
 function getDateFr() {
   return new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
@@ -32,13 +32,13 @@ export default function Layout() {
   const { data: cotisations = [] } = useQuery({ queryKey: ["cotisations"], queryFn: () => base44.entities.Cotisation.list() });
 
   // Compute late members (active members with no payment in last 3 months of data)
-  const moisNums = { JANVIER:1,FEVRIER:2,MARS:3,AVRIL:4,MAI:5,JUIN:6,JUILLET:7,AOUT:8,AOÛT:8,SEPTEMBRE:9,OCTOBRE:10,NOVEMBRE:11,DECEMBRE:12 };
-  const recentCols = [...new Set(cotisations.map(c => `${(c.mois||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}|${c.annee}`))].sort((a,b)=>{
-    const [ma,ya]=a.split('|'), [mb,yb]=b.split('|');
-    return (parseInt(yb)*100+(moisNums[mb]||0))-(parseInt(ya)*100+(moisNums[ma]||0));
-  }).slice(0,3);
-  const paidInRecent = new Set(cotisations.filter(c => recentCols.includes(`${(c.mois||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}|${c.annee}`)).map(c=>c.membre_nom));
-  const lateMembersList = membres.filter(m => m.statut === 'actif' && !paidInRecent.has(m.nom));
+  const moisNums = { JANVIER: 1, FEVRIER: 2, MARS: 3, AVRIL: 4, MAI: 5, JUIN: 6, JUILLET: 7, AOUT: 8, AOÛT: 8, SEPTEMBRE: 9, OCTOBRE: 10, NOVEMBRE: 11, DECEMBRE: 12 };
+  const recentCols = [...new Set(cotisations.map((c) => `${(c.mois || '').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')}|${c.annee}`))].sort((a, b) => {
+    const [ma, ya] = a.split('|'),[mb, yb] = b.split('|');
+    return parseInt(yb) * 100 + (moisNums[mb] || 0) - (parseInt(ya) * 100 + (moisNums[ma] || 0));
+  }).slice(0, 3);
+  const paidInRecent = new Set(cotisations.filter((c) => recentCols.includes(`${(c.mois || '').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')}|${c.annee}`)).map((c) => c.membre_nom));
+  const lateMembersList = membres.filter((m) => m.statut === 'actif' && !paidInRecent.has(m.nom));
   const lateCount = lateMembersList.length;
 
   return (
@@ -60,77 +60,77 @@ export default function Layout() {
             const active = location.pathname === item.path;
             return (
               <Link key={item.path} to={item.path}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                  active
-                    ? "bg-primary text-primary-foreground shadow-md amber-glow"
-                    : "text-sidebar-foreground/65 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
-                }`}>
+              className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+              active ?
+              "bg-primary text-primary-foreground shadow-md amber-glow" :
+              "text-sidebar-foreground/65 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"}`
+              }>
                 <item.icon className="h-4 w-4 flex-shrink-0" />
                 {item.label}
-              </Link>
-            );
+              </Link>);
+
           })}
-          {isAdmin && (
-            <Link to="/articles-admin"
-              className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                location.pathname === '/articles-admin'
-                  ? 'bg-primary text-primary-foreground shadow-md amber-glow'
-                  : 'text-sidebar-foreground/65 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground'
-              }`}>
+          {isAdmin &&
+          <Link to="/articles-admin"
+          className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+          location.pathname === '/articles-admin' ?
+          'bg-primary text-primary-foreground shadow-md amber-glow' :
+          'text-sidebar-foreground/65 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground'}`
+          }>
               <ShieldCheck className="h-4 w-4" />
               Admin Articles
             </Link>
-          )}
+          }
         </nav>
 
         <div className="p-3 border-t border-sidebar-border space-y-1">
           {/* Date */}
           <div className="px-4 py-2 text-[10px] text-sidebar-foreground/40 capitalize">{getDateFr()}</div>
-          {user && (
-            <div className="px-4 py-2">
+          {user &&
+          <div className="px-4 py-2">
               <p className="text-xs font-semibold text-sidebar-foreground/90 truncate">{user.full_name}</p>
               <p className="text-xs text-sidebar-foreground/45 truncate">{user.email}</p>
             </div>
-          )}
+          }
           <div className="flex items-center gap-2 px-2">
             {/* Cloche notifications desktop */}
             <div className="relative">
               <button
                 onClick={() => setShowNotif(!showNotif)}
-                className="relative p-2 rounded-xl hover:bg-sidebar-accent/60 text-sidebar-foreground/70 transition-all"
-              >
+                className="relative p-2 rounded-xl hover:bg-sidebar-accent/60 text-sidebar-foreground/70 transition-all">
+                
                 <Bell className="h-4 w-4" />
-                {lateCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-destructive text-white text-[9px] font-bold rounded-full flex items-center justify-center animate-pulse">{lateCount}</span>
-                )}
+                {lateCount > 0 &&
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-destructive text-white text-[9px] font-bold rounded-full flex items-center justify-center animate-pulse">{lateCount}</span>
+                }
               </button>
-              {showNotif && (
-                <div className="absolute bottom-10 left-0 w-72 bg-card border border-border rounded-2xl shadow-xl p-4 z-50 animate-in fade-in-0 slide-in-from-bottom-2 duration-200">
+              {showNotif &&
+              <div className="absolute bottom-10 left-0 w-72 bg-card border border-border rounded-2xl shadow-xl p-4 z-50 animate-in fade-in-0 slide-in-from-bottom-2 duration-200">
                   <div className="flex items-center justify-between border-b border-border pb-2 mb-3">
                     <h4 className="font-bold text-xs text-foreground">Alertes Cotisations</h4>
                     {lateCount > 0 && <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-semibold">{lateCount} en retard</span>}
                   </div>
                   <div className="space-y-1 max-h-52 overflow-y-auto">
-                    {lateMembersList.length > 0 ? lateMembersList.map((m) => (
-                      <Link key={m.id} to="/membres" onClick={() => setShowNotif(false)}
-                        className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                    {lateMembersList.length > 0 ? lateMembersList.map((m) =>
+                  <Link key={m.id} to="/membres" onClick={() => setShowNotif(false)}
+                  className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
                         <span className="text-xs font-medium text-foreground truncate">{m.nom}</span>
                         <span className="text-[10px] text-destructive font-semibold ml-2">En retard</span>
                       </Link>
-                    )) : (
-                      <p className="text-xs text-muted-foreground text-center py-3">Aucun retard 🎉</p>
-                    )}
+                  ) :
+                  <p className="text-xs text-muted-foreground text-center py-3">Aucun retard 🎉</p>
+                  }
                   </div>
                 </div>
-              )}
+              }
             </div>
             <button onClick={() => setDark(!dark)}
-              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent/60 transition-all">
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent/60 transition-all">
               {dark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
               {dark ? "Clair" : "Sombre"}
             </button>
             <button onClick={() => base44.auth.logout()}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-red-300 hover:text-red-100 hover:bg-red-500/20 transition-all">
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-red-300 hover:text-red-100 hover:bg-red-500/20 transition-all">
               <LogOut className="h-3.5 w-3.5" />
             </button>
           </div>
@@ -145,16 +145,16 @@ export default function Layout() {
             <span className="font-bold gradient-text">COACUM</span>
           </div>
           <div className="flex items-center gap-2">
-            {(
-              <div className="relative">
+            {
+            <div className="relative">
                 <button onClick={() => setShowNotif(!showNotif)} className="relative p-1">
                   <Bell className="h-5 w-5 text-muted-foreground" />
-                  {lateCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-white text-[9px] font-bold rounded-full flex items-center justify-center animate-pulse">{lateCount}</span>
-                  )}
+                  {lateCount > 0 &&
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-white text-[9px] font-bold rounded-full flex items-center justify-center animate-pulse">{lateCount}</span>
+                }
                 </button>
-                {showNotif && (
-                  <>
+                {showNotif &&
+              <>
                     <div className="fixed inset-0 z-40" onClick={() => setShowNotif(false)} />
                     <div className="fixed top-14 right-4 w-72 bg-card border border-border rounded-2xl shadow-xl p-4 z-50">
                       <div className="flex items-center justify-between border-b border-border pb-2 mb-3">
@@ -162,21 +162,21 @@ export default function Layout() {
                         {lateCount > 0 && <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-semibold">{lateCount} en retard</span>}
                       </div>
                       <div className="space-y-1 max-h-52 overflow-y-auto">
-                        {lateMembersList.length > 0 ? lateMembersList.map((m) => (
-                          <Link key={m.id} to="/membres" onClick={() => { setShowNotif(false); setMobileOpen(false); }}
-                            className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                        {lateMembersList.length > 0 ? lateMembersList.map((m) =>
+                    <Link key={m.id} to="/membres" onClick={() => {setShowNotif(false);setMobileOpen(false);}}
+                    className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
                             <span className="text-xs font-medium text-foreground truncate">{m.nom}</span>
                             <span className="text-[10px] text-destructive font-semibold ml-2">En retard</span>
                           </Link>
-                        )) : (
-                          <p className="text-xs text-muted-foreground text-center py-3">Aucun retard 🎉</p>
-                        )}
+                    ) :
+                    <p className="text-xs text-muted-foreground text-center py-3">Aucun retard 🎉</p>
+                    }
                       </div>
                     </div>
                   </>
-                )}
+              }
               </div>
-            )}
+            }
             <button onClick={() => setDark(!dark)} className="p-1.5 rounded-lg hover:bg-muted">
               {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
@@ -186,33 +186,33 @@ export default function Layout() {
           </div>
         </header>
 
-        {mobileOpen && (
-          <div className="md:hidden bg-card border-b border-border p-3 space-y-1 no-print">
-            {navItems.map((item) => (
-              <Link key={item.path} to={item.path} onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium ${
-                  location.pathname === item.path ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
-                }`}>
+        {mobileOpen &&
+        <div className="md:hidden bg-card border-b border-border p-3 space-y-1 no-print">
+            {navItems.map((item) =>
+          <Link key={item.path} to={item.path} onClick={() => setMobileOpen(false)}
+          className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium ${
+          location.pathname === item.path ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`
+          }>
                 <item.icon className="h-4 w-4" />{item.label}
               </Link>
-            ))}
-            {isAdmin && (
-              <Link to="/articles-admin" onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium ${location.pathname === '/articles-admin' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'}`}>
+          )}
+            {isAdmin &&
+          <Link to="/articles-admin" onClick={() => setMobileOpen(false)}
+          className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium ${location.pathname === '/articles-admin' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'}`}>
                 <ShieldCheck className="h-4 w-4" />Admin Articles
               </Link>
-            )}
+          }
             <button onClick={() => base44.auth.logout()}
-              className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 w-full">
+          className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 w-full">
               <LogOut className="h-4 w-4" />Déconnexion
             </button>
           </div>
-        )}
+        }
 
         <main className="flex-1 overflow-auto">
           <Outlet />
         </main>
       </div>
-    </div>
-  );
+    </div>);
+
 }
