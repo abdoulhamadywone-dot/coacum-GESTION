@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import ExportPDF from "@/components/ExportPDF";
 
 const MOIS_LIST = ["JANVIER", "FEVRIER", "MARS", "AVRIL", "MAI", "JUIN", "JUILLET", "AOUT", "SEPTEMBRE", "OCTOBRE", "NOVEMBRE", "DECEMBRE"];
 const MOIS_NUM = { JANVIER:1, FEVRIER:2, MARS:3, AVRIL:4, MAI:5, JUIN:6, JUILLET:7, AOUT:8, AOÛT:8, SEPTEMBRE:9, OCTOBRE:10, NOVEMBRE:11, DECEMBRE:12 };
@@ -104,6 +105,7 @@ export default function Cotisations() {
               {years.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
             </SelectContent>
           </Select>
+          <ExportPDF cotisations={cotisations} depenses={[]} membres={membres} />
           {isAdmin && <Button onClick={openCreate} className="gap-2"><Plus className="h-4 w-4" /> Ajouter</Button>}
         </div>
       </div>
