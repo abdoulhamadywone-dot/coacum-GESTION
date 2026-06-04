@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Send, Bot, Sparkles, RefreshCw } from "lucide-react";
 import ChatMessageBubble from "@/components/ChatMessageBubble";
@@ -13,6 +14,8 @@ const SUGGESTIONS = [
 ];
 
 export default function Assistant() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const [conversation, setConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -21,15 +24,21 @@ export default function Assistant() {
 
   // Create conversation on mount
   useEffect(() => {
+    if (!user) return;
     const init = async () => {
       const conv = await base44.agents.createConversation({
         agent_name: "coacum_assistant",
-        metadata: { name: "Session COACUM" },
+        metadata: { name: `Session de ${user.full_name || "Membre"}` },
+      });
+      // Inject system context with user role (invisible to user)
+      await base44.agents.addMessage(conv, {
+        role: "user",
+        content: `[SYSTÈME] Utilisateur connecté : ${user.full_name || "Inconnu"} — Rôle : ${user.role || "user"}. Applique les règles de sécurité correspondantes.`,
       });
       setConversation(conv);
     };
     init();
-  }, []);
+  }, [user?.id]);
 
   // Subscribe to updates
   useEffect(() => {
@@ -60,7 +69,11 @@ export default function Assistant() {
   const resetConversation = async () => {
     const conv = await base44.agents.createConversation({
       agent_name: "coacum_assistant",
-      metadata: { name: "Session COACUM" },
+      metadata: { name: `Session de ${user?.full_name || "Membre"}` },
+    });
+    await base44.agents.addMessage(conv, {
+      role: "user",
+      content: `[SYSTÈME] Utilisateur connecté : ${user?.full_name || "Inconnu"} — Rôle : ${user?.role || "user"}. Applique les règles de sécurité correspondantes.`,
     });
     setConversation(conv);
     setMessages([]);
@@ -82,6 +95,9 @@ export default function Assistant() {
               Assistant COACUM <Sparkles className="h-3.5 w-3.5 text-amber-500" />
             </h1>
             <p className="text-xs text-muted-foreground">IA connectée à votre base de données</p>
+            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full mt-0.5 inline-block ${isAdmin ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+              {isAdmin ? "🔓 Mode Admin — écriture autorisée" : "🔒 Mode Lecture seule"}
+            </span>
           </div>
         </div>
         <Button variant="ghost" size="sm" onClick={resetConversation} className="gap-1.5 text-xs">
