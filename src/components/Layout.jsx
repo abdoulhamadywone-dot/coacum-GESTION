@@ -1,10 +1,11 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Wallet, Receipt, Calendar, LogOut, Menu, X, ShieldCheck, Newspaper, Sun, Moon, Bell, Bot, CheckCheck } from "lucide-react";
+import { LayoutDashboard, Users, Wallet, Receipt, Calendar, LogOut, Menu, X, ShieldCheck, Newspaper, Sun, Moon, Bell, CheckCheck } from "lucide-react";
 import { useState, useCallback } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import useDarkMode from "../hooks/useDarkMode";
+import AssistantBubble from "@/components/AssistantBubble";
 
 const navItems = [
   { path: "/", label: "Tableau de bord", icon: LayoutDashboard },
@@ -13,7 +14,6 @@ const navItems = [
   { path: "/depenses", label: "Dépenses", icon: Receipt },
   { path: "/evenements", label: "Événements", icon: Calendar },
   { path: "/articles", label: "Actualités", icon: Newspaper },
-  { path: "/assistant", label: "Assistant IA", icon: Bot },
 ];
 
 function getDateFr() {
@@ -262,6 +262,9 @@ export default function Layout() {
           <Outlet />
         </main>
       </div>
+
+      {/* Floating assistant bubble */}
+      <AssistantBubble />
     </div>
   );
 }

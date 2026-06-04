@@ -18,7 +18,7 @@ function loadImage(url) {
   });
 }
 
-export default function ExportPDF({ cotisations = [], depenses = [], membres = [] }) {
+export default function ExportPDF({ cotisations = [], depenses = [], membres = [], compact = false }) {
   const [open, setOpen] = useState(false);
   const [moisFilter, setMoisFilter] = useState("all");
   const [anneeFilter, setAnneeFilter] = useState("2025");
@@ -261,10 +261,20 @@ export default function ExportPDF({ cotisations = [], depenses = [], membres = [
 
   return (
     <>
-      <Button onClick={() => setOpen(true)} variant="outline" className="gap-2">
-        <FileDown className="h-4 w-4" />
-        Exporter PDF
-      </Button>
+      {compact ? (
+        <button
+          onClick={() => setOpen(true)}
+          className="p-1.5 rounded-lg hover:bg-white/20 text-white transition-colors"
+          title="Exporter PDF"
+        >
+          <FileDown className="h-3.5 w-3.5" />
+        </button>
+      ) : (
+        <Button onClick={() => setOpen(true)} variant="outline" className="gap-2">
+          <FileDown className="h-4 w-4" />
+          Exporter PDF
+        </Button>
+      )}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-sm">
