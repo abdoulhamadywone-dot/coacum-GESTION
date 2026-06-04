@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Send, Bot, Sparkles, RefreshCw } from "lucide-react";
 import ChatMessageBubble from "@/components/ChatMessageBubble";
+import ExportPDF from "@/components/ExportPDF";
 
 const SUGGESTIONS = [
   "Qui sont les membres en retard de cotisation ?",
@@ -81,6 +83,10 @@ export default function Assistant() {
 
   const isThinking = sending || messages[messages.length - 1]?.role === "user";
 
+  const { data: cotisations = [] } = useQuery({ queryKey: ["cotisations"], queryFn: () => base44.entities.Cotisation.list() });
+  const { data: depenses = [] } = useQuery({ queryKey: ["depenses"], queryFn: () => base44.entities.Depense.list() });
+  const { data: membres = [] } = useQuery({ queryKey: ["membres"], queryFn: () => base44.entities.Membre.list() });
+
   return (
     <div className="flex flex-col h-full max-h-[calc(100vh-4rem)] md:max-h-screen">
 
@@ -100,9 +106,12 @@ export default function Assistant() {
             </span>
           </div>
         </div>
-        <Button variant="ghost" size="sm" onClick={resetConversation} className="gap-1.5 text-xs">
-          <RefreshCw className="h-3.5 w-3.5" /> Nouvelle session
-        </Button>
+        <div className="flex items-center gap-2">
+          <ExportPDF cotisations={cotisations} depenses={depenses} membres={membres} />
+          <Button variant="ghost" size="sm" onClick={resetConversation} className="gap-1.5 text-xs">
+            <RefreshCw className="h-3.5 w-3.5" /> Nouvelle session
+          </Button>
+        </div>
       </div>
 
       {/* Messages */}
