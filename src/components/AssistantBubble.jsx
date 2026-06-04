@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery } from "@tanstack/react-query";
-import { Bot, X, Send, Sparkles, RefreshCw, Minimize2 } from "lucide-react";
+import { useLocation } from "react-router-dom";
+import { Bot, Send, Sparkles, RefreshCw, Minimize2 } from "lucide-react";
 import ChatMessageBubble from "@/components/ChatMessageBubble";
 import ExportPDF from "@/components/ExportPDF";
 
@@ -15,6 +16,7 @@ const SUGGESTIONS = [
 
 export default function AssistantBubble() {
   const { user } = useAuth();
+  const location = useLocation();
   const isAdmin = user?.role === "admin";
   const [open, setOpen] = useState(false);
   const [hasNew, setHasNew] = useState(true); // notification badge
@@ -94,6 +96,9 @@ export default function AssistantBubble() {
 
   // Filter out system messages for display
   const visibleMessages = messages.filter(m => !m.content?.startsWith("[SYSTÈME]"));
+
+  // Ne pas afficher sur la page assistant dédiée
+  if (location.pathname === "/assistant") return null;
 
   return (
     <>
