@@ -6,6 +6,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import useDarkMode from "../hooks/useDarkMode";
 import AssistantBubble from "@/components/AssistantBubble";
+import OfflineIndicator from "@/components/OfflineIndicator";
 
 const navItems = [
   { path: "/", label: "Tableau de bord", icon: LayoutDashboard },
@@ -263,6 +264,8 @@ export default function Layout() {
         </main>
       </div>
 
+      {/* Offline indicator */}
+      <OfflineIndicator />
       {/* Floating assistant bubble */}
       <AssistantBubble />
     </div>
