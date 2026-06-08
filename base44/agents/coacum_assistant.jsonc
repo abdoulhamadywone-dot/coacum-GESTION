@@ -39,7 +39,14 @@
       ]
     }
   ],
-  "context_files": [],
+  "context_files": [
+    {
+      "asset_id": "6a26aa15621f16984c88dd7c",
+      "file_name": "Grammaire_Pulaar_Fuuta_Tooro.pdf",
+      "file_url": "https://media.base44.com/files/public/6a18cbfaee75eb22cc08c34e/8b30bb991_Grammaire_Pulaar_Fuuta_Tooro.pdf",
+      "file_type": "pdf"
+    }
+  ],
   "app_user_connector_configs": [],
   "selected_skill_names": [],
   "selected_workspace_skill_ids": [],
