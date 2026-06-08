@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "react-router-dom";
 import { Bot, Send, Sparkles, RefreshCw, Minimize2 } from "lucide-react";
+import AudioRecorder from "@/components/AudioRecorder";
 import ChatMessageBubble from "@/components/ChatMessageBubble";
 import ExportPDF from "@/components/ExportPDF";
 
@@ -206,11 +207,12 @@ export default function AssistantBubble() {
           {/* Input */}
           <div className="flex-shrink-0 px-3 py-3 border-t border-border bg-card/80">
             <div className="flex gap-2 items-end">
+              <AudioRecorder onTranscription={(text) => sendMessage(text)} disabled={sending || !conversation} />
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-                placeholder="Votre question..."
+                placeholder="Question ou message vocal 🎙️..."
                 rows={1}
                 className="flex-1 resize-none rounded-xl border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring placeholder:text-muted-foreground min-h-[38px] max-h-24"
               />

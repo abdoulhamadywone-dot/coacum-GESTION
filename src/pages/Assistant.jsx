@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Send, Bot, Sparkles, RefreshCw } from "lucide-react";
 import ChatMessageBubble from "@/components/ChatMessageBubble";
 import ExportPDF from "@/components/ExportPDF";
+import AudioRecorder from "@/components/AudioRecorder";
 
 const SUGGESTIONS = [
   "Qui sont les membres en retard de cotisation ?",
@@ -165,12 +166,13 @@ export default function Assistant() {
 
       {/* Input */}
       <div className="flex-shrink-0 px-4 md:px-6 py-4 border-t border-border bg-card/80 backdrop-blur-sm">
-        <div className="flex gap-3 items-end max-w-4xl mx-auto">
+        <div className="flex gap-2 items-end max-w-4xl mx-auto">
+          <AudioRecorder onTranscription={(text) => sendMessage(text)} disabled={sending || !conversation} />
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-            placeholder="Posez votre question sur l'association..."
+            placeholder="Posez votre question ou utilisez le micro 🎙️ (pulaar / français)..."
             rows={1}
             className="flex-1 resize-none rounded-xl border border-input bg-background px-4 py-3 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring placeholder:text-muted-foreground min-h-[44px] max-h-32"
             style={{ height: "auto" }}
@@ -184,7 +186,7 @@ export default function Assistant() {
           </Button>
         </div>
         <p className="text-[10px] text-muted-foreground text-center mt-2">
-          L'assistant a accès aux données membres, cotisations, dépenses et événements.
+          🎙️ Message vocal accepté en pulaar ou en français — L'assistant a accès aux données de l'association.
         </p>
       </div>
     </div>
