@@ -7,7 +7,8 @@
       "allowed_operations": [
         "read",
         "create",
-        "update"
+        "update",
+        "delete"
       ]
     },
     {
@@ -15,19 +16,26 @@
       "allowed_operations": [
         "read",
         "create",
-        "update"
+        "update",
+        "delete"
       ]
     },
     {
       "entity_name": "Depense",
       "allowed_operations": [
-        "read"
+        "read",
+        "create",
+        "update",
+        "delete"
       ]
     },
     {
       "entity_name": "Evenement",
       "allowed_operations": [
-        "read"
+        "read",
+        "create",
+        "update",
+        "delete"
       ]
     }
   ],
