@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Wallet, Receipt, Calendar, LogOut, Menu, X, ShieldCheck, Newspaper, Sun, Moon, Bell, CheckCheck } from "lucide-react";
+import { LayoutDashboard, Users, Wallet, Receipt, Calendar, LogOut, Menu, X, ShieldCheck, Newspaper, Sun, Moon, Bell, CheckCheck, MessageCircle } from "lucide-react";
 import { useState, useCallback } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
@@ -268,6 +268,16 @@ export default function Layout() {
       <OfflineIndicator />
       {/* Floating assistant bubble */}
       <AssistantBubble />
+      {/* WhatsApp contact button */}
+      <a
+        href="https://wa.me/22249161424"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-24 right-6 z-50 w-12 h-12 rounded-full bg-green-500 hover:bg-green-600 shadow-2xl flex items-center justify-center transition-all duration-200 hover:scale-110"
+        title="Contacter COACUM sur WhatsApp"
+      >
+        <MessageCircle className="h-5 w-5 text-white" />
+      </a>
     </div>
   );
 }

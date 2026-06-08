@@ -35,10 +35,11 @@ const MOIS_ORDER = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","
 
 function formatWhatsApp(tel) {
   if (!tel) return null;
-  // Remove spaces, dashes, parentheses
-  let cleaned = tel.replace(/[\s\-().+]/g, "");
-  // If starts with 00, replace with nothing (keep digits)
+  // Keep only digits
+  let cleaned = tel.replace(/\D/g, "");
+  // If starts with 00, remove the 00
   if (cleaned.startsWith("00")) cleaned = cleaned.slice(2);
+  if (!cleaned) return null;
   return `https://wa.me/${cleaned}`;
 }
 

@@ -178,7 +178,7 @@ export default function Membres() {
                       <td className="p-3 text-muted-foreground hidden md:table-cell">{m.date_adhesion || "—"}</td>
                       <td className="p-3 hidden lg:table-cell">
                         {m.telephone ? (
-                          <a href={`https://wa.me/${m.telephone.replace(/[\s\-().+]/g,"").replace(/^00/,"")}`} target="_blank" rel="noopener noreferrer"
+                          <a href={`https://wa.me/${m.telephone.replace(/\D/g,"").replace(/^00/,"")}`} target="_blank" rel="noopener noreferrer"
                             className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-xs font-medium hover:bg-green-100 transition-colors">
                             <MessageCircle className="h-3 w-3" /> {m.telephone}
                           </a>
