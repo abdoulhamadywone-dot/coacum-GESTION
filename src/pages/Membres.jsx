@@ -2,7 +2,8 @@ import { useState, useMemo } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Plus, Search, Edit2, Trash2, UserCheck, UserX, ChevronLeft, ChevronRight, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, UserCheck, UserX, ChevronLeft, ChevronRight, ArrowUp, ArrowDown, MessageCircle } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -153,7 +154,9 @@ export default function Membres() {
                           {getInitials(m.nom)}
                         </div>
                       </td>
-                      <td className="p-3 font-medium text-foreground">{m.nom}</td>
+                      <td className="p-3 font-medium text-foreground">
+                        <Link to={`/membres/${m.id}`} className="hover:text-primary hover:underline transition-colors">{m.nom}</Link>
+                      </td>
                       <td className="p-3">
                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${m.statut === "actif" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" : "bg-muted text-muted-foreground"}`}>
                           {m.statut === "actif" ? <UserCheck className="h-3 w-3" /> : <UserX className="h-3 w-3" />}
@@ -173,7 +176,14 @@ export default function Membres() {
                         </div>
                       </td>
                       <td className="p-3 text-muted-foreground hidden md:table-cell">{m.date_adhesion || "—"}</td>
-                      <td className="p-3 text-muted-foreground hidden lg:table-cell">{m.telephone || "—"}</td>
+                      <td className="p-3 hidden lg:table-cell">
+                        {m.telephone ? (
+                          <a href={`https://wa.me/${m.telephone.replace(/[\s\-().+]/g,"").replace(/^00/,"")}`} target="_blank" rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-xs font-medium hover:bg-green-100 transition-colors">
+                            <MessageCircle className="h-3 w-3" /> {m.telephone}
+                          </a>
+                        ) : <span className="text-muted-foreground text-sm">—</span>}
+                      </td>
                       {isAdmin && (
                         <td className="p-3 text-right">
                           <div className="flex justify-end gap-1">

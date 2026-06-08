@@ -20,6 +20,7 @@ import Evenements from './pages/Evenements';
 import Articles from './pages/Articles';
 import ArticlesAdmin from './pages/ArticlesAdmin';
 import Assistant from './pages/Assistant';
+import MembreProfil from './pages/MembreProfil';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -60,6 +61,7 @@ const AuthenticatedApp = () => {
           <Route path="/articles" element={<Articles />} />
           <Route path="/articles-admin" element={<ArticlesAdmin />} />
           <Route path="/assistant" element={<Assistant />} />
+          <Route path="/membres/:id" element={<MembreProfil />} />
         </Route>
       </Route>
       <Route path="*" element={<PageNotFound />} />
