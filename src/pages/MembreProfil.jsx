@@ -2,7 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { ArrowLeft, Phone, MessageCircle, Calendar, Wallet, TrendingUp, UserCheck, UserX, Edit2 } from "lucide-react";
+import { ArrowLeft, Phone, MessageCircle, Calendar, Wallet, TrendingUp, UserCheck, UserX, Edit2, Users, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -53,6 +53,8 @@ export default function MembreProfil() {
 
   const { data: membres = [] } = useQuery({ queryKey: ["membres"], queryFn: () => base44.entities.Membre.list() });
   const { data: cotisations = [] } = useQuery({ queryKey: ["cotisations"], queryFn: () => base44.entities.Cotisation.list() });
+  const { data: participations = [] } = useQuery({ queryKey: ["participations"], queryFn: () => base44.entities.Participation.list() });
+  const { data: evenements = [] } = useQuery({ queryKey: ["evenements"], queryFn: () => base44.entities.Evenement.list() });
 
   const membre = membres.find(m => m.id === id);
 
@@ -198,6 +200,52 @@ export default function MembreProfil() {
           <div className="px-4 py-3 border-t border-border bg-muted/20 flex justify-between text-sm font-semibold">
             <span>Total</span>
             <span className="text-amber-600">{totalPaye.toLocaleString("fr-FR")} MRU</span>
+          </div>
+        )}
+      </div>
+
+      {/* Participation aux événements */}
+      <div className="bg-card border border-border rounded-2xl overflow-hidden">
+        <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+          <h2 className="font-semibold text-sm flex items-center gap-2"><Users className="h-4 w-4 text-amber-500" /> Participation aux événements</h2>
+          <span className="text-xs text-muted-foreground">{participations.filter(p => p.membre_id === membre.id).length} événement(s)</span>
+        </div>
+        {participations.filter(p => p.membre_id === membre.id).length === 0 ? (
+          <p className="text-center text-sm text-muted-foreground py-8">Aucune participation enregistrée.</p>
+        ) : (
+          <div className="divide-y divide-border">
+            {participations
+              .filter(p => p.membre_id === membre.id)
+              .sort((a, b) => {
+                const ea = evenements.find(ev => ev.id === a.evenement_id);
+                const eb = evenements.find(ev => ev.id === b.evenement_id);
+                return (eb?.date_debut || "").localeCompare(ea?.date_debut || "");
+              })
+              .map(p => {
+                const evt = evenements.find(e => e.id === p.evenement_id);
+                const statutColors = { présent: "bg-emerald-100 text-emerald-700", excusé: "bg-amber-100 text-amber-700", absent: "bg-red-100 text-red-700" };
+                return (
+                  <div key={p.id} className="flex items-center justify-between px-4 py-3 hover:bg-muted/20 transition-colors">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {p.statut === "présent" ? <UserCheck className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+                       : p.statut === "excusé" ? <MessageCircle className="h-4 w-4 text-amber-500 flex-shrink-0" />
+                       : <UserX className="h-4 w-4 text-red-400 flex-shrink-0" />}
+                      <div className="min-w-0">
+                        <span className="text-sm font-medium truncate block">{p.evenement_titre}</span>
+                        {evt?.date_debut && (
+                          <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                            <Calendar className="h-2.5 w-2.5" /> {evt.date_debut}
+                            {evt.lieu && <><MapPin className="h-2.5 w-2.5 ml-1" /> {evt.lieu}</>}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium flex-shrink-0 ml-2 ${statutColors[p.statut] || "bg-muted text-muted-foreground"}`}>
+                      {p.statut}
+                    </span>
+                  </div>
+                );
+              })}
           </div>
         )}
       </div>
