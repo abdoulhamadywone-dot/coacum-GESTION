@@ -128,7 +128,7 @@ export default function Layout() {
         </div>
 
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-          {navItems.map(item => {
+          {navItems.filter(item => isAdmin || item.path !== "/depenses").map(item => {
             const active = location.pathname === item.path;
             return (
               <Link key={item.path} to={item.path}
@@ -234,7 +234,7 @@ export default function Layout() {
 
         {mobileOpen && (
           <div className="md:hidden bg-card border-b border-border p-3 space-y-1 no-print">
-            {navItems.map(item => (
+            {navItems.filter(item => isAdmin || item.path !== "/depenses").map(item => (
               <Link key={item.path} to={item.path} onClick={() => setMobileOpen(false)}
                 className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium ${
                   location.pathname === item.path ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"

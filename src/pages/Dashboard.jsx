@@ -22,15 +22,28 @@ function AnimatedStat({ value, suffix = "", prefix = "" }) {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const { data: membres = [] } = useQuery({ queryKey: ["membres"], queryFn: () => base44.entities.Membre.list() });
   const { data: cotisations = [] } = useQuery({ queryKey: ["cotisations"], queryFn: () => base44.entities.Cotisation.list() });
   const { data: depenses = [] } = useQuery({ queryKey: ["depenses"], queryFn: () => base44.entities.Depense.list() });
   const { data: evenements = [] } = useQuery({ queryKey: ["evenements"], queryFn: () => base44.entities.Evenement.list() });
 
+  // For non-admin: find the matching membre record and filter personal cotisations
+  const monMembre = !isAdmin ? membres.find(m => m.nom === user?.full_name) : null;
+  const mesCotisations = !isAdmin ? cotisations.filter(c => c.membre_nom === user?.full_name) : [];
+
   const totalCotisations = cotisations.reduce((s, c) => s + (c.montant || 0), 0);
   const totalDepenses = depenses.reduce((s, d) => s + (d.montant || 0), 0);
   const membresActifs = membres.filter((m) => m.statut === "actif").length;
   const solde = totalCotisations - totalDepenses;
+
+  // Personal stats for non-admin
+  const monTotal = mesCotisations.reduce((s, c) => s + (c.montant || 0), 0);
+  const monDernier = mesCotisations.sort((a,b) => {
+    const key = (c) => (c.annee*100)+(MOIS_NUMS[(c.mois||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')]||0);
+    return key(b)-key(a);
+  })[0];
+  const monMoisPayes = mesCotisations.length;
 
   // Late members (actif, not paid in last 3 months of data)
   const allCols = [...new Set(cotisations.map(c => {
@@ -99,11 +112,11 @@ export default function Dashboard() {
           </h1>
           <p className="text-white/70 text-sm md:text-base mt-1">Coalition des Acteurs des Cultures Urbaines de Mauritanie</p>
         </div>
-        <div className="absolute top-4 right-4 no-print"><ExportPDF cotisations={cotisations} depenses={depenses} membres={membres} /></div>
+        {isAdmin && <div className="absolute top-4 right-4 no-print"><ExportPDF cotisations={cotisations} depenses={depenses} membres={membres} /></div>}
       </div>
 
-      {/* Late members alert */}
-      {lateMembers.length > 0 && (
+      {/* Late members alert (admin only) */}
+      {isAdmin && lateMembers.length > 0 && (
         <Link
           to="/membres"
           className="flex items-start justify-between gap-3 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 hover:border-amber-400 hover:shadow-md transition-all duration-200"
@@ -122,124 +135,165 @@ export default function Dashboard() {
       )}
 
       {/* Stats grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Membres" value={<AnimatedStat value={membres.length} />} subtitle={`${membresActifs} actifs`} icon={Users} color="primary" href="/membres" />
-        <StatCard title="Cotisations" value={<AnimatedStat value={totalCotisations} suffix=" MRU" />} subtitle={`${cotisations.length} paiements`} icon={Wallet} color="accent" href="/cotisations" />
-        <StatCard title="Dépenses" value={<AnimatedStat value={totalDepenses} suffix=" MRU" />} subtitle={`${depenses.length} entrées`} icon={Receipt} color="destructive" href="/depenses" />
-        <StatCard title="Événements" value={<AnimatedStat value={evenements.length} />} subtitle={`${evenements.filter(e=>e.statut==='planifié').length} planifiés`} icon={Calendar} color="muted" href="/evenements" />
-      </div>
+      {isAdmin ? (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard title="Membres" value={<AnimatedStat value={membres.length} />} subtitle={`${membresActifs} actifs`} icon={Users} color="primary" href="/membres" />
+          <StatCard title="Cotisations" value={<AnimatedStat value={totalCotisations} suffix=" MRU" />} subtitle={`${cotisations.length} paiements`} icon={Wallet} color="accent" href="/cotisations" />
+          <StatCard title="Dépenses" value={<AnimatedStat value={totalDepenses} suffix=" MRU" />} subtitle={`${depenses.length} entrées`} icon={Receipt} color="destructive" href="/depenses" />
+          <StatCard title="Événements" value={<AnimatedStat value={evenements.length} />} subtitle={`${evenements.filter(e=>e.statut==='planifié').length} planifiés`} icon={Calendar} color="muted" href="/evenements" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+          <StatCard title="Mes cotisations" value={<AnimatedStat value={monTotal} suffix=" MRU" />} subtitle={`${monMoisPayes} mois payés`} icon={Wallet} color="accent" href="/cotisations" />
+          <StatCard title="Dernier paiement" value={monDernier ? `${monDernier.mois?.slice(0,3)} ${monDernier.annee}` : "—"} subtitle={monDernier ? `${monDernier.montant} MRU` : "Aucun"} icon={Calendar} color="primary" />
+          <StatCard title="Événements" value={<AnimatedStat value={evenements.length} />} subtitle={`${evenements.filter(e=>e.statut==='planifié').length} à venir`} icon={Calendar} color="muted" href="/evenements" />
+        </div>
+      )}
 
       {/* Solde + prochain événement */}
-      <div className="grid md:grid-cols-2 gap-4">
-        <div className={`rounded-2xl p-6 text-white shadow-lg ${solde >= 0 ? 'bg-gradient-to-br from-amber-500 to-orange-600' : 'bg-gradient-to-br from-red-500 to-red-700'}`}>
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-sm font-medium text-white/80">Solde financier</p>
-            {solde >= 0 ? <TrendingUp className="h-5 w-5 text-white/70" /> : <TrendingDown className="h-5 w-5 text-white/70" />}
+      {isAdmin ? (
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className={`rounded-2xl p-6 text-white shadow-lg ${solde >= 0 ? 'bg-gradient-to-br from-amber-500 to-orange-600' : 'bg-gradient-to-br from-red-500 to-red-700'}`}>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-medium text-white/80">Solde financier</p>
+              {solde >= 0 ? <TrendingUp className="h-5 w-5 text-white/70" /> : <TrendingDown className="h-5 w-5 text-white/70" />}
+            </div>
+            <p className="text-4xl font-bold"><AnimatedStat value={Math.abs(solde)} prefix={solde < 0 ? "-" : "+"} suffix=" MRU" /></p>
+            <p className="text-xs text-white/60 mt-2">Cotisations − Dépenses</p>
+            <div className="mt-4 h-1.5 bg-white/20 rounded-full overflow-hidden">
+              <div className="h-full bg-white/60 rounded-full transition-all duration-1000" style={{width: `${Math.min(100, (totalCotisations/(totalCotisations+totalDepenses||1))*100)}%`}} />
+            </div>
+            <p className="text-[10px] text-white/50 mt-1">Taux de couverture</p>
           </div>
-          <p className="text-4xl font-bold"><AnimatedStat value={Math.abs(solde)} prefix={solde < 0 ? "-" : "+"} suffix=" MRU" /></p>
-          <p className="text-xs text-white/60 mt-2">Cotisations − Dépenses</p>
-          {/* Mini progress bar */}
-          <div className="mt-4 h-1.5 bg-white/20 rounded-full overflow-hidden">
-            <div className="h-full bg-white/60 rounded-full transition-all duration-1000" style={{width: `${Math.min(100, (totalCotisations/(totalCotisations+totalDepenses||1))*100)}%`}} />
-          </div>
-          <p className="text-[10px] text-white/50 mt-1">Taux de couverture</p>
-        </div>
 
-        <Link to="/evenements" className="bg-card rounded-2xl border border-border p-6 shadow-sm hover:border-primary/40 hover:shadow-md transition-all duration-200 block">
-          <p className="text-sm font-medium text-muted-foreground mb-3">⏰ Prochain événement</p>
-          {prochainEvenement ? (
-            <>
-              <p className="text-lg font-bold text-foreground">{prochainEvenement.titre}</p>
-              <p className="text-sm text-muted-foreground mt-1">{prochainEvenement.date_debut}{prochainEvenement.lieu ? ` · ${prochainEvenement.lieu}` : ''}</p>
-              {daysUntil !== null && daysUntil >= 0 && (
-                <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full">
-                  <span className="text-2xl font-bold text-primary">{daysUntil}</span>
-                  <span className="text-xs text-primary/70">jour{daysUntil !== 1 ? 's' : ''} restant{daysUntil !== 1 ? 's' : ''}</span>
+          <Link to="/evenements" className="bg-card rounded-2xl border border-border p-6 shadow-sm hover:border-primary/40 hover:shadow-md transition-all duration-200 block">
+            <p className="text-sm font-medium text-muted-foreground mb-3">⏰ Prochain événement</p>
+            {prochainEvenement ? (
+              <>
+                <p className="text-lg font-bold text-foreground">{prochainEvenement.titre}</p>
+                <p className="text-sm text-muted-foreground mt-1">{prochainEvenement.date_debut}{prochainEvenement.lieu ? ` · ${prochainEvenement.lieu}` : ''}</p>
+                {daysUntil !== null && daysUntil >= 0 && (
+                  <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full">
+                    <span className="text-2xl font-bold text-primary">{daysUntil}</span>
+                    <span className="text-xs text-primary/70">jour{daysUntil !== 1 ? 's' : ''} restant{daysUntil !== 1 ? 's' : ''}</span>
+                  </div>
+                )}
+              </>
+            ) : (
+              <p className="text-muted-foreground text-sm">Aucun événement à venir</p>
+            )}
+            <p className="text-xs text-primary/60 mt-3 font-medium">Voir tous les événements →</p>
+          </Link>
+        </div>
+      ) : (
+        /* Personal summary card for non-admin */
+        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+          <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">📋 Résumé de mes cotisations</h3>
+          {mesCotisations.length > 0 ? (
+            <div className="space-y-2">
+              {mesCotisations.sort((a,b) => {
+                const key = (c) => (c.annee*100)+(MOIS_NUMS[(c.mois||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')]||0);
+                return key(b)-key(a);
+              }).slice(0, 6).map(c => (
+                <div key={c.id} className="flex items-center justify-between py-1.5 border-b border-border last:border-0">
+                  <span className="text-sm text-foreground">{c.mois} {c.annee}</span>
+                  <span className="text-sm font-bold text-emerald-600">{c.montant} MRU</span>
                 </div>
+              ))}
+              {mesCotisations.length > 6 && (
+                <Link to="/cotisations" className="text-xs text-primary hover:underline block text-center pt-1">
+                  Voir les {mesCotisations.length} paiements →
+                </Link>
               )}
-            </>
+            </div>
           ) : (
-            <p className="text-muted-foreground text-sm">Aucun événement à venir</p>
+            <p className="text-sm text-muted-foreground">Aucune cotisation enregistrée. Contactez un administrateur.</p>
           )}
-          <p className="text-xs text-primary/60 mt-3 font-medium">Voir tous les événements →</p>
-        </Link>
-      </div>
+          {mesCotisations.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-border flex justify-between text-sm font-semibold">
+              <span>Total versé</span>
+              <span className="text-amber-600">{monTotal.toLocaleString()} MRU</span>
+            </div>
+          )}
+        </div>
+      )}
 
-      {/* Area Chart: Cotisations vs Dépenses */}
-      <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
-        <h3 className="font-semibold text-foreground mb-1">Revenus vs Dépenses</h3>
-        <p className="text-xs text-muted-foreground mb-5">Évolution sur les 8 derniers mois</p>
-        {areaData.length > 0 ? (
-          <ResponsiveContainer width="100%" height={260}>
-            <AreaChart data={areaData}>
-              <defs>
-                <linearGradient id="gradCot" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(38,95%,48%)" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="hsl(38,95%,48%)" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="gradDep" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(0,84%,60%)" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="hsl(0,84%,60%)" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(38,15%,90%)" vertical={false} />
-              <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} />
-              <YAxis fontSize={10} axisLine={false} tickLine={false} />
-              <Tooltip formatter={(v, n) => [`${v.toLocaleString()} MRU`, n === 'cotisations' ? 'Cotisations' : 'Dépenses']} />
-              <Area type="monotone" dataKey="cotisations" stroke="hsl(38,95%,48%)" strokeWidth={2} fill="url(#gradCot)" />
-              <Area type="monotone" dataKey="depenses" stroke="hsl(0,84%,60%)" strokeWidth={2} fill="url(#gradDep)" />
-            </AreaChart>
-          </ResponsiveContainer>
-        ) : (
-          <div className="flex items-center justify-center h-32 text-muted-foreground text-sm">Aucune donnée</div>
-        )}
-      </div>
-
-      {/* Top 5 + Pie */}
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* Top 5 Contributors */}
-        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
-          <h3 className="font-semibold text-foreground mb-1 flex items-center gap-2"><Trophy className="h-4 w-4 text-primary" /> Top 5 Contributeurs</h3>
-          <p className="text-xs text-muted-foreground mb-4">Membres ayant le plus cotisé</p>
-          <div className="space-y-3">
-            {top5.map(([nom, total], idx) => (
-              <div key={nom} className="flex items-center gap-3">
-                <span className="text-lg w-6 text-center">{MEDALS[idx]}</span>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <p className="text-sm font-medium text-foreground truncate">{nom}</p>
-                    <p className="text-xs font-bold text-primary ml-2">{total.toLocaleString()} MRU</p>
-                  </div>
-                  <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-700"
-                      style={{ width: `${(total/maxContrib)*100}%`, background: idx === 0 ? 'hsl(38,95%,48%)' : idx === 1 ? 'hsl(200,80%,55%)' : idx === 2 ? 'hsl(25,95%,53%)' : 'hsl(142,55%,45%)' }} />
-                  </div>
-                </div>
-              </div>
-            ))}
-            {top5.length === 0 && <p className="text-muted-foreground text-sm">Aucune donnée</p>}
+      {/* Charts & Analytics (admin only) */}
+      {isAdmin && (
+        <>
+          <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+            <h3 className="font-semibold text-foreground mb-1">Revenus vs Dépenses</h3>
+            <p className="text-xs text-muted-foreground mb-5">Évolution sur les 8 derniers mois</p>
+            {areaData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={260}>
+                <AreaChart data={areaData}>
+                  <defs>
+                    <linearGradient id="gradCot" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(38,95%,48%)" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="hsl(38,95%,48%)" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="gradDep" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(0,84%,60%)" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="hsl(0,84%,60%)" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(38,15%,90%)" vertical={false} />
+                  <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} />
+                  <YAxis fontSize={10} axisLine={false} tickLine={false} />
+                  <Tooltip formatter={(v, n) => [`${v.toLocaleString()} MRU`, n === 'cotisations' ? 'Cotisations' : 'Dépenses']} />
+                  <Area type="monotone" dataKey="cotisations" stroke="hsl(38,95%,48%)" strokeWidth={2} fill="url(#gradCot)" />
+                  <Area type="monotone" dataKey="depenses" stroke="hsl(0,84%,60%)" strokeWidth={2} fill="url(#gradDep)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-32 text-muted-foreground text-sm">Aucune donnée</div>
+            )}
           </div>
-        </div>
 
-        {/* Pie chart */}
-        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
-          <h3 className="font-semibold text-foreground mb-1">Dépenses par catégorie</h3>
-          <p className="text-xs text-muted-foreground mb-4">Répartition des dépenses</p>
-          {pieData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={220}>
-              <PieChart>
-                <Pie data={pieData} cx="50%" cy="44%" innerRadius={55} outerRadius={85} dataKey="value" paddingAngle={3}>
-                  {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} stroke="none" />)}
-                </Pie>
-                <Tooltip formatter={(v) => [`${v.toLocaleString()} MRU`, '']} />
-                <Legend iconType="circle" iconSize={8} formatter={(v) => <span className="text-xs text-muted-foreground">{v}</span>} />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex items-center justify-center h-32 text-muted-foreground text-sm"><Receipt className="h-6 w-6 mr-2 opacity-30" />Aucune dépense</div>
-          )}
-        </div>
-      </div>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+              <h3 className="font-semibold text-foreground mb-1 flex items-center gap-2"><Trophy className="h-4 w-4 text-primary" /> Top 5 Contributeurs</h3>
+              <p className="text-xs text-muted-foreground mb-4">Membres ayant le plus cotisé</p>
+              <div className="space-y-3">
+                {top5.map(([nom, total], idx) => (
+                  <div key={nom} className="flex items-center gap-3">
+                    <span className="text-lg w-6 text-center">{MEDALS[idx]}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-sm font-medium text-foreground truncate">{nom}</p>
+                        <p className="text-xs font-bold text-primary ml-2">{total.toLocaleString()} MRU</p>
+                      </div>
+                      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-700"
+                          style={{ width: `${(total/maxContrib)*100}%`, background: idx === 0 ? 'hsl(38,95%,48%)' : idx === 1 ? 'hsl(200,80%,55%)' : idx === 2 ? 'hsl(25,95%,53%)' : 'hsl(142,55%,45%)' }} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {top5.length === 0 && <p className="text-muted-foreground text-sm">Aucune donnée</p>}
+              </div>
+            </div>
+
+            <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+              <h3 className="font-semibold text-foreground mb-1">Dépenses par catégorie</h3>
+              <p className="text-xs text-muted-foreground mb-4">Répartition des dépenses</p>
+              {pieData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={220}>
+                  <PieChart>
+                    <Pie data={pieData} cx="50%" cy="44%" innerRadius={55} outerRadius={85} dataKey="value" paddingAngle={3}>
+                      {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} stroke="none" />)}
+                    </Pie>
+                    <Tooltip formatter={(v) => [`${v.toLocaleString()} MRU`, '']} />
+                    <Legend iconType="circle" iconSize={8} formatter={(v) => <span className="text-xs text-muted-foreground">{v}</span>} />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-32 text-muted-foreground text-sm"><Receipt className="h-6 w-6 mr-2 opacity-30" />Aucune dépense</div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

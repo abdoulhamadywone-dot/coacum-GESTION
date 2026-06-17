@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Plus, Edit2, Trash2 } from "lucide-react";
+import { Plus, Edit2, Trash2, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -47,6 +47,23 @@ export default function Depenses() {
   const createDep = useMutation({ mutationFn: (d) => base44.entities.Depense.create(d), onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["depenses"] }); setDialogOpen(false); toast.success("Dépense ajoutée"); } });
   const updateDep = useMutation({ mutationFn: ({ id, data }) => base44.entities.Depense.update(id, data), onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["depenses"] }); setDialogOpen(false); setEditing(null); toast.success("Dépense modifiée"); } });
   const deleteDep = useMutation({ mutationFn: (id) => base44.entities.Depense.delete(id), onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["depenses"] }); setDeleteId(null); toast.success("Dépense supprimée"); } });
+
+  // Non-admin: access denied
+  if (!isAdmin) {
+    return (
+      <div className="p-4 md:p-8 max-w-6xl mx-auto">
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
+            <Receipt className="h-8 w-8 text-muted-foreground/40" />
+          </div>
+          <h1 className="text-xl font-bold text-foreground mb-2">Accès restreint</h1>
+          <p className="text-muted-foreground max-w-md text-sm">
+            La consultation des dépenses est réservée aux administrateurs de l'association.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const total = depenses.reduce((s, d) => s + (d.montant || 0), 0);
   const filtered = filterRub === "all" ? depenses : depenses.filter(d => d.rubrique === filterRub);
