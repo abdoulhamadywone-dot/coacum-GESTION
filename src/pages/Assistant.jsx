@@ -90,61 +90,74 @@ export default function Assistant() {
     const visibleMessages = messages.filter(m => m.role !== "user" || !m.content?.startsWith("[SYSTÈME]"));
     if (visibleMessages.length === 0) return;
 
-    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-    const margin = 18;
-    const pageW = 210;
-    const contentW = pageW - margin * 2;
-    let y = margin;
+    try {
+      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const margin = 18;
+      const pageW = 210;
+      const contentW = pageW - margin * 2;
+      let y = margin;
 
-    // Header
-    doc.setFillColor(245, 158, 11);
-    doc.rect(0, 0, pageW, 22, "F");
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text("Assistant COACUM — Conversation", margin, 14);
-    doc.setFontSize(8);
-    doc.setFont("helvetica", "normal");
-    doc.text(new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }), pageW - margin, 14, { align: "right" });
-    y = 30;
-
-    visibleMessages.forEach((msg) => {
-      const isUser = msg.role === "user";
-      const label = isUser ? (user?.full_name || "Vous") : "Assistant COACUM";
-      const roleColor = isUser ? [59, 130, 246] : [245, 158, 11];
-
-      // Role badge
-      doc.setFillColor(...roleColor);
-      const labelW = doc.getStringUnitWidth(label) * 8 / doc.internal.scaleFactor + 10;
-      doc.roundedRect(margin, y, labelW, 6, 2, 2, "F");
+      doc.setFillColor(245, 158, 11);
+      doc.rect(0, 0, pageW, 22, "F");
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(7);
+      doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
-      doc.text(label, margin + 5, y + 4);
-      y += 9;
-
-      // Message content
-      const text = msg.content || "";
-      doc.setTextColor(40, 40, 40);
-      doc.setFontSize(9);
+      doc.text("Assistant COACUM — Conversation", margin, 14);
+      doc.setFontSize(8);
       doc.setFont("helvetica", "normal");
-      const lines = doc.splitTextToSize(text, contentW);
-      lines.forEach((line) => {
-        if (y > 275) { doc.addPage(); y = 20; }
-        doc.text(line, margin, y);
-        y += 5;
+      doc.text(new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }), pageW - margin, 14, { align: "right" });
+      y = 28;
+
+      visibleMessages.forEach((msg) => {
+        const isUser = msg.role === "user";
+        const label = isUser ? (user?.full_name || "Vous") : "Assistant COACUM";
+
+        doc.setFontSize(8);
+        doc.setTextColor(isUser ? 37 : 245, isUser ? 99 : 158, isUser ? 235 : 11);
+        doc.setFont("helvetica", "bold");
+        doc.text(label + ":", margin, y);
+        y += 6;
+
+        const text = msg.content || "";
+        doc.setTextColor(40, 40, 40);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+        const lines = doc.splitTextToSize(text, contentW);
+        lines.forEach((line) => {
+          if (y > 275) { doc.addPage(); y = 20; }
+          doc.text(line, margin, y);
+          y += 5;
+        });
+        y += 3;
       });
-      y += 3;
-    });
 
-    doc.setDrawColor(200, 200, 200);
-    doc.line(margin, y, margin + contentW, y);
-    y += 5;
-    doc.setTextColor(150, 150, 150);
-    doc.setFontSize(7);
-    doc.text("Document généré par l'application COACUM", margin, y);
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFillColor(245, 158, 11);
+        doc.rect(0, 287, pageW, 10, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(7);
+        doc.setFont("helvetica", "normal");
+        doc.text("Document généré par l'application COACUM", margin, 293);
+        doc.text(`Page ${i} / ${pageCount}`, pageW - margin, 293, { align: "right" });
+      }
 
-    doc.save(`COACUM_Conversation_${new Date().toISOString().slice(0, 10)}.pdf`);
+      doc.save(`COACUM_Conversation_${new Date().toISOString().slice(0, 10)}.pdf`);
+    } catch (e) {
+      // Fallback to text download
+      const text = visibleMessages.map(m => {
+        const who = m.role === "user" ? (user?.full_name || "Vous") : "Assistant COACUM";
+        return `[${who}]\n${m.content || ""}\n`;
+      }).join("\n---\n\n");
+      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `COACUM_Conversation_${new Date().toISOString().slice(0, 10)}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
   };
 
   const isThinking = sending || messages[messages.length - 1]?.role === "user";
@@ -154,7 +167,7 @@ export default function Assistant() {
   const { data: membres = [] } = useQuery({ queryKey: ["membres"], queryFn: () => base44.entities.Membre.list() });
 
   return (
-    <div className={`flex flex-col h-full ${isFullscreen ? 'fixed inset-0 z-50 bg-background' : 'max-h-[calc(100vh-4rem)] md:max-h-screen'}`}>
+    <div className={isFullscreen ? 'fixed inset-0 z-[60] bg-background flex flex-col' : 'flex flex-col h-full max-h-[calc(100vh-4rem)] md:max-h-screen'}>
 
       {/* Header */}
       <div className="flex-shrink-0 flex items-center justify-between px-4 md:px-6 py-4 border-b border-border bg-card/80 backdrop-blur-sm">
@@ -182,11 +195,11 @@ export default function Assistant() {
               <Button variant="ghost" size="sm" onClick={resetConversation} className="gap-1.5 text-xs">
                 <RefreshCw className="h-3.5 w-3.5" /> Nouvelle session
               </Button>
-              <Button variant="ghost" size="icon" onClick={() => setIsFullscreen(!isFullscreen)} className="h-8 w-8" title={isFullscreen ? "Quitter plein écran" : "Plein écran"}>
-                {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-              </Button>
             </>
           )}
+          <Button variant="ghost" size="icon" onClick={() => setIsFullscreen(!isFullscreen)} className="h-8 w-8" title={isFullscreen ? "Quitter plein écran" : "Plein écran"}>
+            {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+          </Button>
         </div>
       </div>
 
