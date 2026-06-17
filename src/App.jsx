@@ -19,6 +19,7 @@ import Depenses from './pages/Depenses';
 import Evenements from './pages/Evenements';
 import Articles from './pages/Articles';
 import ArticlesAdmin from './pages/ArticlesAdmin';
+import Administration from './pages/Administration';
 import Assistant from './pages/Assistant';
 import MembreProfil from './pages/MembreProfil';
 
@@ -60,6 +61,7 @@ const AuthenticatedApp = () => {
           <Route path="/evenements" element={<Evenements />} />
           <Route path="/articles" element={<Articles />} />
           <Route path="/articles-admin" element={<ArticlesAdmin />} />
+          <Route path="/administration" element={<Administration />} />
           <Route path="/assistant" element={<Assistant />} />
           <Route path="/membres/:id" element={<MembreProfil />} />
         </Route>

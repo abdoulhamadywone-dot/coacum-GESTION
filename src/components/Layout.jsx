@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Wallet, Receipt, Calendar, LogOut, Menu, X, ShieldCheck, Newspaper, Sun, Moon, Bell, CheckCheck, MessageCircle } from "lucide-react";
+import { LayoutDashboard, Users, Wallet, Receipt, Calendar, LogOut, Menu, X, ShieldCheck, Newspaper, Sun, Moon, Bell, CheckCheck, MessageCircle, Settings } from "lucide-react";
 import { useState, useCallback } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
@@ -154,6 +154,18 @@ export default function Layout() {
               Admin Articles
             </Link>
           )}
+          {isAdmin && (
+            <Link to="/administration"
+              className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                location.pathname === '/administration'
+                  ? 'bg-primary text-primary-foreground shadow-md amber-glow'
+                  : 'text-sidebar-foreground/65 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground'
+              }`}
+            >
+              <Settings className="h-4 w-4" />
+              Administration
+            </Link>
+          )}
         </nav>
 
         <div className="p-3 border-t border-sidebar-border space-y-1">
@@ -250,6 +262,15 @@ export default function Layout() {
                 }`}
               >
                 <ShieldCheck className="h-4 w-4" />Admin Articles
+              </Link>
+            )}
+            {isAdmin && (
+              <Link to="/administration" onClick={() => setMobileOpen(false)}
+                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium ${
+                  location.pathname === '/administration' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'
+                }`}
+              >
+                <Settings className="h-4 w-4" />Administration
               </Link>
             )}
             <button onClick={() => base44.auth.logout()}
