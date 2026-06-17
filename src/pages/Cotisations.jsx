@@ -29,9 +29,6 @@ export default function Cotisations() {
   const { data: cotisations = [], isLoading } = useQuery({ queryKey: ["cotisations"], queryFn: () => base44.entities.Cotisation.list() });
   const { data: membres = [] } = useQuery({ queryKey: ["membres"], queryFn: () => base44.entities.Membre.list() });
 
-  // Non-admin: show only their own cotisations
-  const userCotisations = !isAdmin ? cotisations.filter(c => c.membre_nom === user?.full_name) : cotisations;
-
   const createCot = useMutation({
     mutationFn: (data) => base44.entities.Cotisation.create(data),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["cotisations"] }); setDialogOpen(false); toast.success("Cotisation ajoutée"); },
@@ -45,9 +42,8 @@ export default function Cotisations() {
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["cotisations"] }); setDeleteTarget(null); toast.success("Cotisation supprimée"); },
   });
 
-  // Build pivot data - use restricted set for non-admin
-  const displayData = !isAdmin ? userCotisations : cotisations;
-  const filtered = filterAnnee === "all" ? displayData : displayData.filter(c => String(c.annee) === filterAnnee);
+  // Build pivot data
+  const filtered = filterAnnee === "all" ? cotisations : cotisations.filter(c => String(c.annee) === filterAnnee);
   const years = [...new Set(cotisations.map(c => c.annee))].sort();
 
   // Unique ordered month-year columns
@@ -99,10 +95,7 @@ export default function Cotisations() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Cotisations</h1>
-          <p className="text-sm text-muted-foreground">
-            {isAdmin ? `${memberNames.length} membres · Total : ` : `Mes paiements · Total : `}
-            <span className="font-semibold text-primary">{total.toLocaleString()} MRU</span>
-          </p>
+          <p className="text-sm text-muted-foreground">{memberNames.length} membres · Total : <span className="font-semibold text-primary">{total.toLocaleString()} MRU</span></p>
         </div>
         <div className="flex items-center gap-3">
           <Select value={filterAnnee} onValueChange={setFilterAnnee}>
@@ -112,7 +105,7 @@ export default function Cotisations() {
               {years.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
             </SelectContent>
           </Select>
-          <ExportPDF cotisations={displayData} depenses={[]} membres={membres.filter(m => isAdmin || m.nom === user?.full_name)} />
+          <ExportPDF cotisations={cotisations} depenses={[]} membres={membres} />
           {isAdmin && <Button onClick={openCreate} className="gap-2"><Plus className="h-4 w-4" /> Ajouter</Button>}
         </div>
       </div>
