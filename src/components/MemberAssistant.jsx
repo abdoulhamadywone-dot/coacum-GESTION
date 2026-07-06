@@ -11,7 +11,7 @@ const SUGGESTIONS = [
   "Quel est le total dû par ce membre ?",
 ];
 
-export default function MemberAssistant({ membre, cotisations }) {
+export default function MemberAssistant({ membre, cotisations, onDataChanged }) {
   const [expanded, setExpanded] = useState(false);
   const [chatReady, setChatReady] = useState(false);
   const [conversation, setConversation] = useState(null);
@@ -66,9 +66,25 @@ export default function MemberAssistant({ membre, cotisations }) {
     return unsubscribe;
   }, [conversation?.id]);
 
+  const prevToolCount = useRef(0);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Detect when the agent completes write operations (create/update/delete on entities)
+  useEffect(() => {
+    if (!onDataChanged || !messages.length) return;
+    const allToolCalls = messages.flatMap(m => m.tool_calls || []);
+    const completedWrites = allToolCalls.filter(
+      tc => ["success", "completed"].includes(tc.status) &&
+        tc.name && /entities\.(Cotisation|Membre|Depense|Participation|Evenement)\.(create|update|delete|bulkCreate|bulkUpdate|updateMany|deleteMany)/i.test(tc.name)
+    );
+    if (completedWrites.length > prevToolCount.current) {
+      prevToolCount.current = completedWrites.length;
+      onDataChanged();
+    }
+  }, [messages, onDataChanged]);
 
   const sendMessage = async (text) => {
     const content = text || input.trim();

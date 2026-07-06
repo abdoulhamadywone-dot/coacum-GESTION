@@ -178,7 +178,14 @@ export default function MembreProfil() {
 
       {/* Assistant IA - Admin only */}
       {isAdmin && (
-        <MemberAssistant membre={membre} cotisations={cotisations} />
+        <MemberAssistant
+          membre={membre}
+          cotisations={cotisations}
+          onDataChanged={() => {
+            queryClient.invalidateQueries({ queryKey: ["cotisations"] });
+            queryClient.invalidateQueries({ queryKey: ["membres"] });
+          }}
+        />
       )}
 
       {/* Historique cotisations */}
