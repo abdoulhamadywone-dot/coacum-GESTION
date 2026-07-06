@@ -212,12 +212,20 @@ export default function MembreProfil() {
                 <div className="flex items-center gap-3">
                   <div className={`w-2 h-2 rounded-full ${c.paye ? "bg-emerald-500" : "bg-amber-400"}`} />
                   <div>
-                    <span className="text-sm font-medium">{c.mois} {c.annee}</span>
+                    {c.montant === 1000 ? (
+                      <span className="text-sm font-semibold text-violet-600">Donation {c.annee}</span>
+                    ) : (
+                      <span className="text-sm font-medium">{c.mois} {c.annee}</span>
+                    )}
                     {!c.paye && <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">Impayé</span>}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-emerald-600">{c.montant?.toLocaleString("fr-FR")} MRU</span>
+                  {c.montant === 1000 ? (
+                    <span className="text-sm font-bold text-violet-600">Donation</span>
+                  ) : (
+                    <span className="text-sm font-bold text-emerald-600">{c.montant?.toLocaleString("fr-FR")} MRU</span>
+                  )}
                   {isAdmin && (
                     <button
                       onClick={() => deleteCotisation.mutate(c.id)}
