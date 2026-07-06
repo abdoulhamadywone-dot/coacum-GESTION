@@ -4,6 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { Users, Wallet, Receipt, Calendar, TrendingUp, TrendingDown, AlertTriangle, Trophy, Heart } from "lucide-react";
 import StatCard from "../components/StatCard";
 import ExportPDF from "../components/ExportPDF";
+import ExportDashboardPDF from "../components/ExportDashboardPDF";
 import ExportGoogleSheets from "../components/ExportGoogleSheets";
 import { useAuth } from "@/lib/AuthContext";
 import useAnimatedCounter from "../hooks/useAnimatedCounter";
@@ -106,7 +107,8 @@ export default function Dashboard() {
         </div>
         <div className="absolute top-4 right-4 no-print flex gap-2">
           <ExportGoogleSheets cotisations={cotisations} />
-          <ExportPDF cotisations={cotisations} depenses={depenses} membres={membres} />
+          <ExportDashboardPDF membres={membres} cotisations={cotisations} depenses={depenses} evenements={evenements} compact />
+          <ExportPDF cotisations={cotisations} depenses={depenses} membres={membres} compact />
         </div>
       </div>
 
