@@ -92,24 +92,26 @@ export default function Dashboard() {
   const daysUntil = prochainEvenement ? Math.ceil((new Date(prochainEvenement.date_debut) - new Date()) / 86400000) : null;
 
   return (
-    <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
+    <div className="p-3 sm:p-4 md:p-8 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
 
       {/* Hero Banner */}
-      <div className="relative rounded-2xl overflow-hidden h-52 md:h-64 shadow-xl">
+      <div className="relative rounded-2xl overflow-hidden h-44 sm:h-52 md:h-64 shadow-xl">
         <img src="https://media.base44.com/images/public/6a18cbfaee75eb22cc08c34e/2b2c866bd_generated_image.png" alt="COACUM" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
-        <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-10">
-          <p className="text-xs font-semibold uppercase tracking-widest text-amber-400 mb-1">Tableau de bord</p>
-          <h1 className="text-2xl md:text-4xl font-bold text-white leading-tight">
+        <div className="absolute inset-0 flex flex-col justify-end p-5 sm:p-6 md:p-10">
+          <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-amber-400 mb-1">Tableau de bord</p>
+          <h1 className="text-xl sm:text-2xl md:text-4xl font-bold text-white leading-tight">
             Bienvenue{user?.full_name ? `, ${user.full_name.split(' ')[0]}` : ''} 👋
           </h1>
-          <p className="text-white/70 text-sm md:text-base mt-1">Coalition des Acteurs des Cultures Urbaines de Mauritanie</p>
+          <p className="text-white/70 text-xs sm:text-sm md:text-base mt-1">Coalition des Acteurs des Cultures Urbaines de Mauritanie</p>
         </div>
-        <div className="absolute top-4 right-4 no-print flex gap-2">
-          <ExportGoogleSheets cotisations={cotisations} />
-          <ExportDashboardPDF membres={membres} cotisations={cotisations} depenses={depenses} evenements={evenements} compact />
-          <ExportPDF cotisations={cotisations} depenses={depenses} membres={membres} compact />
-        </div>
+      </div>
+
+      {/* Export buttons bar */}
+      <div className="no-print flex flex-wrap items-center gap-2 sm:gap-3">
+        <ExportDashboardPDF membres={membres} cotisations={cotisations} depenses={depenses} evenements={evenements} />
+        <ExportPDF cotisations={cotisations} depenses={depenses} membres={membres} />
+        <ExportGoogleSheets cotisations={cotisations} />
       </div>
 
       {/* Late members alert */}
@@ -132,7 +134,7 @@ export default function Dashboard() {
       )}
 
       {/* Stats grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard title="Membres" value={<AnimatedStat value={membres.length} />} subtitle={`${membresActifs} actifs`} icon={Users} color="primary" href="/membres" />
         <StatCard title="Cotisations" value={<AnimatedStat value={totalCotisations} suffix=" MRU" />} subtitle={`${cotisations.length} paiements`} icon={Wallet} color="accent" href="/cotisations" />
         <StatCard title="Dépenses" value={<AnimatedStat value={totalDepenses} suffix=" MRU" />} subtitle={`${depenses.length} entrées`} icon={Receipt} color="destructive" href="/depenses" />
@@ -140,7 +142,7 @@ export default function Dashboard() {
       </div>
 
       {/* Récapitulatif Dons vs Cotisations classiques */}
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div className="bg-card rounded-2xl border border-violet-200 dark:border-violet-800 p-6 shadow-sm">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-9 h-9 rounded-xl bg-violet-100 dark:bg-violet-950/40 flex items-center justify-center">
@@ -169,7 +171,7 @@ export default function Dashboard() {
       </div>
 
       {/* Solde + prochain événement */}
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div className={`rounded-2xl p-6 text-white shadow-lg ${solde >= 0 ? 'bg-gradient-to-br from-amber-500 to-orange-600' : 'bg-gradient-to-br from-red-500 to-red-700'}`}>
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm font-medium text-white/80">Solde financier</p>
@@ -205,7 +207,7 @@ export default function Dashboard() {
       </div>
 
       {/* Solde net */}
-      <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+      <div className="bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-sm">
         <div className="flex items-center justify-between mb-5">
           <div>
             <h3 className="font-semibold text-foreground">Solde net</h3>
@@ -217,7 +219,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 mb-5">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-5">
           <div className="rounded-xl bg-emerald-50 dark:bg-emerald-900/20 p-4 text-center">
             <TrendingUp className="h-4 w-4 text-emerald-600 mx-auto mb-1" />
             <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400"><AnimatedStat value={totalRevenus} /></p>
@@ -254,7 +256,7 @@ export default function Dashboard() {
       </div>
 
       {/* Area Chart: Cotisations vs Dépenses */}
-      <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+      <div className="bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-sm">
         <h3 className="font-semibold text-foreground mb-1">Revenus vs Dépenses</h3>
         <p className="text-xs text-muted-foreground mb-5">Évolution sur les 8 derniers mois</p>
         {areaData.length > 0 ? (
@@ -284,9 +286,9 @@ export default function Dashboard() {
       </div>
 
       {/* Top 5 + Pie */}
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         {/* Top 5 Contributors */}
-        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+        <div className="bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-sm">
           <h3 className="font-semibold text-foreground mb-1 flex items-center gap-2"><Trophy className="h-4 w-4 text-primary" /> Top 5 Contributeurs</h3>
           <p className="text-xs text-muted-foreground mb-4">Membres ayant le plus cotisé</p>
           <div className="space-y-3">
@@ -310,7 +312,7 @@ export default function Dashboard() {
         </div>
 
         {/* Pie chart */}
-        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+        <div className="bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-sm">
           <h3 className="font-semibold text-foreground mb-1">Dépenses par catégorie</h3>
           <p className="text-xs text-muted-foreground mb-4">Répartition des dépenses</p>
           {pieData.length > 0 ? (
