@@ -54,7 +54,9 @@ export default function MemberAssistant({ membre, cotisations, onDataChanged }) 
         pendingMessage.current = null;
         await base44.agents.addMessage(conv, { role: "user", content: msg });
       }
+      setSending(false);
     } catch (err) {
+      setSending(false);
       setInitError(err.message || "Erreur de connexion à l'assistant");
     }
   };
@@ -97,16 +99,17 @@ export default function MemberAssistant({ membre, cotisations, onDataChanged }) 
     const content = text || input.trim();
     if (!content || sending) return;
     setInput("");
+    // Optimistically show the user's message immediately
+    setMessages(prev => [...prev, { role: "user", content }]);
+    setSending(true);
     // Queue the message if conversation isn't ready yet
     if (!conversation) {
       pendingMessage.current = content;
-      setSending(true);
       return;
     }
-    setSending(true);
     try {
       await base44.agents.addMessage(conversation, { role: "user", content });
-    } finally {
+    } catch {
       setSending(false);
     }
   };
