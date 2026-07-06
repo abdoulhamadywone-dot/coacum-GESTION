@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import MemberAssistant from "@/components/MemberAssistant";
+import ComptabilisationFonds from "@/components/ComptabilisationFonds";
 import AddCotisationDialog from "@/components/AddCotisationDialog";
 import generateRecuPDF from "@/components/RecuPDF";
 
@@ -194,6 +195,9 @@ export default function MembreProfil() {
           }}
         />
       )}
+
+      {/* Comptabilisation des fonds */}
+      <ComptabilisationFonds membre={membre} cotisations={cotisations} />
 
       {/* Historique cotisations */}
       <div className="bg-card border border-border rounded-2xl overflow-hidden">
