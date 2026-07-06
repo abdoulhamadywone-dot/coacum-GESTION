@@ -34,6 +34,8 @@ export default function Dashboard() {
   const totalDepenses = depenses.reduce((s, d) => s + (d.montant || 0), 0);
   const membresActifs = membres.filter((m) => m.statut === "actif").length;
   const solde = totalCotisations - totalDepenses;
+  const totalRevenus = totalCotisations + totalDons;
+  const soldeNet = totalRevenus - totalDepenses;
 
   // Late members (actif, not paid in last 3 months of data)
   const allCols = [...new Set(cotisations.map(c => {
@@ -198,6 +200,55 @@ export default function Dashboard() {
           )}
           <p className="text-xs text-primary/60 mt-3 font-medium">Voir tous les événements →</p>
         </Link>
+      </div>
+
+      {/* Solde net */}
+      <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h3 className="font-semibold text-foreground">Solde net</h3>
+            <p className="text-xs text-muted-foreground">Total revenus − Total dépenses</p>
+          </div>
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold ${soldeNet >= 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
+            {soldeNet >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+            {soldeNet >= 0 ? 'Excédent' : 'Déficit'}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3 mb-5">
+          <div className="rounded-xl bg-emerald-50 dark:bg-emerald-900/20 p-4 text-center">
+            <TrendingUp className="h-4 w-4 text-emerald-600 mx-auto mb-1" />
+            <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400"><AnimatedStat value={totalRevenus} /></p>
+            <p className="text-[10px] text-muted-foreground">Revenus (MRU)</p>
+            <p className="text-[9px] text-muted-foreground/70 mt-0.5">Cotisations + Dons</p>
+          </div>
+          <div className="rounded-xl bg-red-50 dark:bg-red-900/20 p-4 text-center">
+            <TrendingDown className="h-4 w-4 text-red-500 mx-auto mb-1" />
+            <p className="text-lg font-bold text-red-500"><AnimatedStat value={totalDepenses} /></p>
+            <p className="text-[10px] text-muted-foreground">Dépenses (MRU)</p>
+          </div>
+          <div className={`rounded-xl p-4 text-center ${soldeNet >= 0 ? 'bg-amber-50 dark:bg-amber-900/20' : 'bg-red-50 dark:bg-red-900/20'}`}>
+            <Wallet className={`h-4 w-4 mx-auto mb-1 ${soldeNet >= 0 ? 'text-amber-600' : 'text-red-500'}`} />
+            <p className={`text-lg font-bold ${soldeNet >= 0 ? 'text-amber-600 dark:text-amber-400' : 'text-red-500'}`}><AnimatedStat value={Math.abs(soldeNet)} prefix={soldeNet < 0 ? '−' : ''} /></p>
+            <p className="text-[10px] text-muted-foreground">Solde net (MRU)</p>
+          </div>
+        </div>
+
+        {/* Barre de proportion */}
+        <div>
+          <div className="flex items-center justify-between text-xs text-muted-foreground mb-1.5">
+            <span>Couverture des dépenses</span>
+            <span className="font-semibold text-foreground">{totalDepenses > 0 ? Math.round((totalRevenus / totalDepenses) * 100) : 100}%</span>
+          </div>
+          <div className="h-3 rounded-full bg-red-100 dark:bg-red-900/30 overflow-hidden flex">
+            <div className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 transition-all duration-1000" style={{ width: `${Math.min(100, (totalRevenus / (totalRevenus + totalDepenses || 1)) * 100)}%` }} />
+            <div className="h-full bg-gradient-to-r from-red-400 to-red-500 transition-all duration-1000" style={{ width: `${Math.min(100, (totalDepenses / (totalRevenus + totalDepenses || 1)) * 100)}%` }} />
+          </div>
+          <div className="flex items-center gap-4 mt-2 text-[10px] text-muted-foreground">
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500" /> Revenus</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500" /> Dépenses</span>
+          </div>
+        </div>
       </div>
 
       {/* Area Chart: Cotisations vs Dépenses */}
