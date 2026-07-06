@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { Users, Wallet, Receipt, Calendar, TrendingUp, TrendingDown, AlertTriangle, Trophy } from "lucide-react";
+import { Users, Wallet, Receipt, Calendar, TrendingUp, TrendingDown, AlertTriangle, Trophy, Heart } from "lucide-react";
 import StatCard from "../components/StatCard";
 import ExportPDF from "../components/ExportPDF";
 import { useAuth } from "@/lib/AuthContext";
@@ -27,7 +27,9 @@ export default function Dashboard() {
   const { data: depenses = [] } = useQuery({ queryKey: ["depenses"], queryFn: () => base44.entities.Depense.list() });
   const { data: evenements = [] } = useQuery({ queryKey: ["evenements"], queryFn: () => base44.entities.Evenement.list() });
 
-  const totalCotisations = cotisations.reduce((s, c) => s + (c.montant || 0), 0);
+  const dons = cotisations.filter(c => c.montant === 1000);
+  const totalDons = dons.reduce((s, c) => s + (c.montant || 0), 0);
+  const totalCotisations = cotisations.filter(c => c.montant !== 1000).reduce((s, c) => s + (c.montant || 0), 0);
   const totalDepenses = depenses.reduce((s, d) => s + (d.montant || 0), 0);
   const membresActifs = membres.filter((m) => m.statut === "actif").length;
   const solde = totalCotisations - totalDepenses;
@@ -127,6 +129,35 @@ export default function Dashboard() {
         <StatCard title="Cotisations" value={<AnimatedStat value={totalCotisations} suffix=" MRU" />} subtitle={`${cotisations.length} paiements`} icon={Wallet} color="accent" href="/cotisations" />
         <StatCard title="Dépenses" value={<AnimatedStat value={totalDepenses} suffix=" MRU" />} subtitle={`${depenses.length} entrées`} icon={Receipt} color="destructive" href="/depenses" />
         <StatCard title="Événements" value={<AnimatedStat value={evenements.length} />} subtitle={`${evenements.filter(e=>e.statut==='planifié').length} planifiés`} icon={Calendar} color="muted" href="/evenements" />
+      </div>
+
+      {/* Récapitulatif Dons vs Cotisations classiques */}
+      <div className="grid md:grid-cols-2 gap-4">
+        <div className="bg-card rounded-2xl border border-violet-200 dark:border-violet-800 p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-9 h-9 rounded-xl bg-violet-100 dark:bg-violet-950/40 flex items-center justify-center">
+              <Heart className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-foreground">Dons collectés</p>
+              <p className="text-xs text-muted-foreground">{dons.length} donation{dons.length > 1 ? "s" : ""}</p>
+            </div>
+          </div>
+          <p className="text-3xl font-bold text-violet-600 dark:text-violet-400"><AnimatedStat value={totalDons} suffix=" MRU" /></p>
+        </div>
+
+        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-950/40 flex items-center justify-center">
+              <Wallet className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-foreground">Cotisations classiques</p>
+              <p className="text-xs text-muted-foreground">{cotisations.length - dons.length} paiement{(cotisations.length - dons.length) > 1 ? "s" : ""}</p>
+            </div>
+          </div>
+          <p className="text-3xl font-bold text-amber-600 dark:text-amber-400"><AnimatedStat value={totalCotisations} suffix=" MRU" /></p>
+        </div>
       </div>
 
       {/* Solde + prochain événement */}
