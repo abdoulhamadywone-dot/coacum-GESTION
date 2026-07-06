@@ -74,7 +74,11 @@ export default function Membres() {
   const deleteMembre = useMutation({ mutationFn: (id) => base44.entities.Membre.delete(id), onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["membres"] }); setDeleteId(null); toast.success("Membre supprimé"); } });
 
   const filtered = useMemo(() => {
-    let list = membres.filter(m => m.nom?.toLowerCase().includes(search.toLowerCase()));
+    const q = search.toLowerCase().trim();
+    let list = membres.filter(m =>
+      m.nom?.toLowerCase().includes(q) ||
+      (m.statut || "").toLowerCase().includes(q)
+    );
     if (filterStatut !== "all") list = list.filter(m => m.statut === filterStatut);
     list = [...list].sort((a, b) => {
       let va = a[sortKey] || "", vb = b[sortKey] || "";
