@@ -66,12 +66,12 @@
     "expert-dans-toutes-les-langue-et-cultures-mondaine"
   ],
   "selected_workspace_skill_ids": [],
-  "model": "gemini_3_1_pro",
+  "model": "gemini_3_flash",
   "whatsapp_greeting": "",
   "telegram_greeting": "",
   "line_greeting": "",
   "memory_config": {
-    "enabled": true,
+    "enabled": false,
     "scope": "both",
     "include_other_conversation_context": false,
     "instructions": null
