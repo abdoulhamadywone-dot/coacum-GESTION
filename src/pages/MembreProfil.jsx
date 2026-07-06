@@ -222,7 +222,7 @@ export default function MembreProfil() {
                 </div>
                 <div className="flex items-center gap-2">
                   {c.montant === 1000 ? (
-                    <span className="text-sm font-bold text-violet-600">Donation</span>
+                    <span className="text-sm font-bold text-violet-600">Donation — {c.montant?.toLocaleString("fr-FR")} MRU</span>
                   ) : (
                     <span className="text-sm font-bold text-emerald-600">{c.montant?.toLocaleString("fr-FR")} MRU</span>
                   )}
