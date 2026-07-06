@@ -329,6 +329,74 @@ export default function ExportPDF({ cotisations = [], depenses = [], membres = [
           y += 4;
         });
 
+      } else if (reportType === "sans_cotisation") {
+        const MONTANT_STD = 50;
+        const now = new Date();
+        const curYear = now.getFullYear();
+        const curMonthIdx = now.getMonth();
+
+        // Members who have at least one cotisation
+        const cotisedNames = new Set(cotisations.map(c => c.membre_nom));
+        // Members who never cotised
+        const sansCot = membres.filter(m => !cotisedNames.has(m.nom));
+
+        const cardH = 20;
+        const cardW = (contentW - 8) / 3;
+        const totalArrears = sansCot.reduce((s, m) => {
+          if (!m.date_adhesion) return s;
+          const [yy, mm] = m.date_adhesion.split("-");
+          let yr = parseInt(yy), mi = parseInt(mm) - 1;
+          let months = 0;
+          while (yr < curYear || (yr === curYear && mi <= curMonthIdx)) { months++; mi++; if (mi > 11) { mi = 0; yr++; } }
+          return s + months * MONTANT_STD;
+        }, 0);
+
+        [[margin, "MEMBRES SANS COTISATION", String(sansCot.length), 220, 80, 50],
+         [margin + cardW + 4, "TOTAL MEMBRES", String(membres.length), 34, 120, 60],
+         [margin + (cardW + 4) * 2, "ARRETES ESTIMES", `${totalArrears.toLocaleString("fr-FR")} MRU`, 245, 158, 11]].forEach(([x, label, value, r, g, b]) => {
+          doc.setFillColor(r, g, b);
+          doc.roundedRect(x, y, cardW, cardH, 3, 3, "F");
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(7);
+          doc.setFont("helvetica", "normal");
+          doc.text(label, x + cardW / 2, y + 6, { align: "center" });
+          doc.setFontSize(11);
+          doc.setFont("helvetica", "bold");
+          doc.text(String(value), x + cardW / 2, y + 14, { align: "center" });
+        });
+        y += cardH + 8;
+
+        if (sansCot.length > 0) {
+          drawTable(`Membres n'ayant jamais cotise (${sansCot.length})`,
+            ["Nom", "Telephone", "Date adhesion", "Arrieres (MRU)"],
+            sansCot.map(m => {
+              let arrears = 0, months = 0;
+              if (m.date_adhesion) {
+                const [yy, mm] = m.date_adhesion.split("-");
+                let yr = parseInt(yy), mi = parseInt(mm) - 1;
+                while (yr < curYear || (yr === curYear && mi <= curMonthIdx)) { months++; mi++; if (mi > 11) { mi = 0; yr++; } }
+                arrears = months * MONTANT_STD;
+              }
+              return [m.nom, m.telephone || "-", m.date_adhesion || "-", `${arrears.toLocaleString("fr-FR")} (${months} mois)`];
+            }),
+            [60, 40, 40, 34], [200, 80, 50], true);
+
+          if (y > 230) { doc.addPage(); y = 20; }
+          doc.setFillColor(255, 240, 230);
+          doc.roundedRect(margin, y, contentW, 10, 2, 2, "F");
+          doc.setTextColor(200, 80, 30);
+          doc.setFontSize(8);
+          doc.setFont("helvetica", "italic");
+          doc.text("Action requise: contacter ces membres pour regulariser leur situation.", margin + 2, y + 6.5);
+          y += 12;
+        } else {
+          doc.setTextColor(34, 139, 34);
+          doc.setFontSize(10);
+          doc.setFont("helvetica", "bold");
+          doc.text("Tous les membres ont au moins une cotisation enregistree.", margin, y + 6);
+          y += 12;
+        }
+
       } else if (reportType === "membres") {
         const actifs = membres.filter(m => m.statut === "actif");
         const inactifs = membres.filter(m => m.statut !== "actif");
@@ -444,6 +512,8 @@ export default function ExportPDF({ cotisations = [], depenses = [], membres = [
         ? `COACUM_Membres_${new Date().toISOString().slice(0, 10)}.pdf`
         : reportType === "cotisations"
         ? `COACUM_Toutes_Cotisations_${new Date().toISOString().slice(0, 10)}.pdf`
+        : reportType === "sans_cotisation"
+        ? `COACUM_Sans_Cotisation_${new Date().toISOString().slice(0, 10)}.pdf`
         : moisFilter === "all" ? `COACUM_Bilan_${anneeFilter}.pdf` : `COACUM_Bilan_${moisFilter}_${anneeFilter}.pdf`;
       doc.save(filename);
       setOpen(false);
@@ -483,6 +553,7 @@ export default function ExportPDF({ cotisations = [], depenses = [], membres = [
                   <SelectItem value="financier">Bilan Financier</SelectItem>
                   <SelectItem value="membres">Liste des Membres</SelectItem>
                   <SelectItem value="cotisations">Toutes les Cotisations</SelectItem>
+                  <SelectItem value="sans_cotisation">Membres sans cotisation</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -519,6 +590,7 @@ export default function ExportPDF({ cotisations = [], depenses = [], membres = [
               {reportType === "financier" && <p>- Resume financier (cotisations, depenses, solde)</p>}
               {reportType === "membres" && <p>- Liste complete des membres (actifs et inactifs)</p>}
               {reportType === "cotisations" && <p>- Detail par membre (cotisations + arrieres)</p>}
+              {reportType === "sans_cotisation" && <p>- Membres n'ayant jamais cotise avec arrieres</p>}
               <p>- Section signatures (President, Tresorier, Secretaire)</p>
             </div>
 
