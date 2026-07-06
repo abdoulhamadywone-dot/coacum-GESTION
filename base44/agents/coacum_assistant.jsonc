@@ -39,26 +39,7 @@
       ]
     }
   ],
-  "context_files": [
-    {
-      "asset_id": "6a26c196275de626f468287e",
-      "file_name": "Terminologie_Pulaar_fusion.pdf",
-      "file_url": "https://media.base44.com/files/public/6a18cbfaee75eb22cc08c34e/1166567e3_Terminologie_Pulaar_fusion.pdf",
-      "file_type": "pdf"
-    },
-    {
-      "asset_id": "6a26c1941e517303d896794e",
-      "file_name": "Pulaareeje___Defte_Pulaar.pdf",
-      "file_url": "https://media.base44.com/files/public/6a18cbfaee75eb22cc08c34e/0d4f62c9b_Pulaareeje___Defte_Pulaar.pdf",
-      "file_type": "pdf"
-    },
-    {
-      "asset_id": "6a26f7768d80d2fa58bd4f36",
-      "file_name": "Dictionnaire_Francais_Pulaar.pdf",
-      "file_url": "https://media.base44.com/files/public/6a18cbfaee75eb22cc08c34e/099c5fe86_Dictionnaire_Francais_Pulaar.pdf",
-      "file_type": "pdf"
-    }
-  ],
+  "context_files": [],
   "app_user_connector_configs": [],
   "selected_skill_names": [
     "proffessionelle-en-pulaar-fuuta-tooro",

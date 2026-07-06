@@ -109,7 +109,7 @@ export default function MemberAssistant({ membre, cotisations, onDataChanged }) 
     }
     try {
       await base44.agents.addMessage(conversation, { role: "user", content });
-    } catch {
+    } finally {
       setSending(false);
     }
   };
