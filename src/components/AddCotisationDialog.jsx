@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, CheckCheck } from "lucide-react";
+import { Plus, CheckCheck, FileDown } from "lucide-react";
 import { toast } from "sonner";
+import generateRecuPDF from "@/components/RecuPDF";
 
 const MOIS = [
   "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
@@ -20,6 +21,7 @@ export default function AddCotisationDialog({ membre }) {
   const [annee, setAnnee] = useState(String(new Date().getFullYear()));
   const [montant, setMontant] = useState("50");
   const [paye, setPaye] = useState(true);
+  const [lastCreated, setLastCreated] = useState(null);
   const queryClient = useQueryClient();
 
   const toggleMois = (mois) => {
@@ -37,8 +39,9 @@ export default function AddCotisationDialog({ membre }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cotisations"] });
       const count = selectedMois.length;
-      toast.success(`${count} cotisation${count > 1 ? "s" : ""} ajoutée${count > 1 ? "s" : ""} avec succès`);
-      setOpen(false);
+      const created = selectedMois.map(mois => ({ mois, annee: parseInt(annee), montant: parseFloat(montant), paye }));
+      setLastCreated(created);
+      toast.success(`${count} cotisation${count > 1 ? "s" : ""} ajoutée${count > 1 ? "s" : ""} — reçu disponible`);
       setSelectedMois([]);
       setMontant("50");
       setPaye(true);
@@ -123,6 +126,22 @@ export default function AddCotisationDialog({ membre }) {
               ? "Ajout en cours..."
               : `Ajouter ${selectedMois.length > 0 ? `${selectedMois.length} cotisation${selectedMois.length > 1 ? "s" : ""}` : ""}`}
           </Button>
+
+          {lastCreated && lastCreated.length > 0 && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-violet-50 dark:bg-violet-950/20 border border-violet-200 dark:border-violet-800">
+              <FileDown className="h-4 w-4 text-violet-600 flex-shrink-0" />
+              <p className="text-xs text-violet-700 dark:text-violet-400 flex-1">Reçu prêt à télécharger.</p>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="gap-1.5 border-violet-300 text-violet-700 hover:bg-violet-100"
+                onClick={() => generateRecuPDF(membre, lastCreated)}
+              >
+                <FileDown className="h-3.5 w-3.5" /> Reçu PDF
+              </Button>
+            </div>
+          )}
         </form>
       </DialogContent>
     </Dialog>
