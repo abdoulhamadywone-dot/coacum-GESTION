@@ -139,20 +139,37 @@ export default function ExportPDF({ cotisations = [], depenses = [], membres = [
       };
 
       if (reportType === "cotisations") {
-        const sortedCots = [...cotisations].sort((a, b) => {
-          if (b.annee !== a.annee) return b.annee - a.annee;
-          const ma = MOIS.indexOf(a.mois), mb = MOIS.indexOf(b.mois);
-          return mb - ma;
-        });
-        const totalCot = sortedCots.reduce((s, c) => s + (c.montant || 0), 0);
-        const dons = sortedCots.filter(c => c.montant === 1000);
-        const cotsStd = sortedCots.filter(c => c.montant !== 1000);
+        const MONTANT_STD = 50;
+        const now = new Date();
+        const curYear = now.getFullYear();
+        const curMonthIdx = now.getMonth(); // 0-11
 
+        // Build per-member data
+        const memberMap = {};
+        cotisations.forEach(c => {
+          const key = c.membre_nom || "Inconnu";
+          if (!memberMap[key]) memberMap[key] = { nom: key, cots: [], dons: [] };
+          if (c.montant === 1000) memberMap[key].dons.push(c);
+          else memberMap[key].cots.push(c);
+        });
+
+        // Add members with no cotisations
+        membres.forEach(m => {
+          if (!memberMap[m.nom]) memberMap[m.nom] = { nom: m.nom, cots: [], dons: [], membre: m };
+        });
+
+        const memberNames = Object.keys(memberMap).sort();
+        const allMemberCots = Object.values(memberMap);
+
+        const totalCot = allMemberCots.reduce((s, mc) => s + mc.cots.reduce((s2, c) => s2 + (c.montant || 0), 0), 0);
+        const totalDons = allMemberCots.reduce((s, mc) => s + mc.dons.reduce((s2, c) => s2 + (c.montant || 0), 0), 0);
+
+        // Summary cards
         const cardH = 20;
         const cardW = (contentW - 8) / 3;
         [[margin, "TOTAL COTISATIONS", `${totalCot.toLocaleString("fr-FR")} MRU`, 34, 139, 34],
-         [margin + cardW + 4, "COTISATIONS STANDARD", `${cotsStd.reduce((s,c)=>s+(c.montant||0),0).toLocaleString("fr-FR")} MRU`, 245, 158, 11],
-         [margin + (cardW + 4) * 2, "DONS", `${dons.reduce((s,c)=>s+(c.montant||0),0).toLocaleString("fr-FR")} MRU`, 139, 92, 246]].forEach(([x, label, value, r, g, b]) => {
+         [margin + cardW + 4, "TOTAL DONS", `${totalDons.toLocaleString("fr-FR")} MRU`, 139, 92, 246],
+         [margin + (cardW + 4) * 2, "MEMBRES", String(allMemberCots.length), 245, 158, 11]].forEach(([x, label, value, r, g, b]) => {
           doc.setFillColor(r, g, b);
           doc.roundedRect(x, y, cardW, cardH, 3, 3, "F");
           doc.setTextColor(255, 255, 255);
@@ -163,9 +180,154 @@ export default function ExportPDF({ cotisations = [], depenses = [], membres = [
           doc.setFont("helvetica", "bold");
           doc.text(String(value), x + cardW / 2, y + 14, { align: "center" });
         });
-        y += cardH + 8;
+        y += cardH + 6;
 
-        drawTable(`Toutes les Cotisations (${sortedCots.length})`, ["Membre", "Mois", "Annee", "Montant (MRU)"], sortedCots.map(c => [c.membre_nom, c.mois, c.annee, `${c.montant.toLocaleString("fr-FR")} MRU`]), [70, 35, 25, 44], [34, 120, 60], true);
+        // Helper: compute expected months from date_adhesion (or earliest cot) to now
+        const computeArrears = (mc) => {
+          const membre = mc.membre || membres.find(m => m.nom === mc.nom);
+          let startYear, startMonthIdx;
+          if (membre?.date_adhesion) {
+            const [yy, mm] = membre.date_adhesion.split("-");
+            startYear = parseInt(yy);
+            startMonthIdx = parseInt(mm) - 1;
+          } else if (mc.cots.length > 0) {
+            const earliest = mc.cots.reduce((min, c) => {
+              const mi = MOIS.indexOf(c.mois);
+              if (c.annee < min.annee || (c.annee === min.annee && mi < min.mi)) return { annee: c.annee, mi };
+              return min;
+            }, { annee: 9999, mi: 99 });
+            startYear = earliest.annee;
+            startMonthIdx = earliest.mi;
+          } else {
+            startYear = curYear;
+            startMonthIdx = curMonthIdx;
+          }
+
+          // Expected months list
+          const expected = [];
+          let yr = startYear, mi = startMonthIdx;
+          while (yr < curYear || (yr === curYear && mi <= curMonthIdx)) {
+            expected.push(`${MOIS[mi]} ${yr}`);
+            mi++;
+            if (mi > 11) { mi = 0; yr++; }
+          }
+
+          // Paid months set (standard cotisations, paye=true)
+          const paidSet = new Set(mc.cots.filter(c => c.paye).map(c => `${c.mois} ${c.annee}`));
+          const arrearsMonths = expected.filter(m => !paidSet.has(m));
+          const arrearsAmount = arrearsMonths.length * MONTANT_STD;
+          return { expected, paidSet, arrearsMonths, arrearsAmount };
+        };
+
+        // Per-member detailed blocks
+        allMemberCots.forEach((mc, idx) => {
+          if (y > 250) { doc.addPage(); y = 20; }
+
+          // Member header bar
+          const ar = computeArrears(mc);
+          const membreInfo = mc.membre || membres.find(m => m.nom === mc.nom);
+          const totalPaye = mc.cots.reduce((s, c) => s + (c.montant || 0), 0) + mc.dons.reduce((s, c) => s + (c.montant || 0), 0);
+          const hasArrears = ar.arrearsMonths.length > 0;
+          const barColor = hasArrears ? [220, 80, 50] : [34, 139, 34];
+          doc.setFillColor(...barColor);
+          doc.roundedRect(margin, y, contentW, 9, 2, 2, "F");
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(10);
+          doc.setFont("helvetica", "bold");
+          doc.text(`${idx + 1}. ${mc.nom}`, margin + 4, y + 6);
+          doc.setFontSize(8);
+          doc.setFont("helvetica", "normal");
+          doc.text(`Tel: ${membreInfo?.telephone || "-"}`, margin + 90, y + 6);
+          doc.text(`Adhesion: ${membreInfo?.date_adhesion || "-"}`, margin + 130, y + 6);
+          doc.setFont("helvetica", "bold");
+          doc.text(`Total: ${totalPaye.toLocaleString("fr-FR")} MRU`, pageW - margin - 2, y + 6, { align: "right" });
+          y += 10;
+
+          // Cotisations list — chronological order
+          const allCots = [...mc.cots, ...mc.dons].sort((a, b) => {
+            if (a.annee !== b.annee) return a.annee - b.annee;
+            return MOIS.indexOf(a.mois) - MOIS.indexOf(b.mois);
+          });
+
+          if (allCots.length > 0) {
+            // Sub-header
+            doc.setFillColor(240, 248, 240);
+            doc.rect(margin, y, contentW, 6, "F");
+            doc.setTextColor(60, 60, 60);
+            doc.setFontSize(7);
+            doc.setFont("helvetica", "bold");
+            doc.text("COTISATIONS PAYEES", margin + 2, y + 4.5);
+            doc.text("MONTANT", pageW - margin - 2, y + 4.5, { align: "right" });
+            y += 6;
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(8);
+            allCots.forEach((c, ci) => {
+              if (y > 275) { doc.addPage(); y = 20; }
+              if (ci % 2 === 0) { doc.setFillColor(252, 252, 252); doc.rect(margin, y, contentW, 5.5, "F"); }
+              doc.setTextColor(40, 40, 40);
+              const isDon = c.montant === 1000;
+              const label = isDon ? `Donation - ${c.annee}` : `${c.mois} ${c.annee}`;
+              doc.text(label, margin + 4, y + 4);
+              if (!c.paye) { doc.setTextColor(220, 80, 50); doc.text("(impayé)", margin + 60, y + 4); }
+              doc.setTextColor(isDon ? 139 : 34, isDon ? 92 : 139, isDon ? 246 : 34);
+              doc.setFont("helvetica", "bold");
+              doc.text(`${c.montant.toLocaleString("fr-FR")} MRU`, pageW - margin - 2, y + 4, { align: "right" });
+              doc.setFont("helvetica", "normal");
+              y += 5.5;
+            });
+          } else {
+            doc.setTextColor(120, 120, 120);
+            doc.setFontSize(8);
+            doc.text("Aucune cotisation enregistree.", margin + 2, y + 4);
+            y += 6;
+          }
+
+          // Arrears section
+          if (hasArrears) {
+            if (y > 260) { doc.addPage(); y = 20; }
+            doc.setFillColor(255, 240, 230);
+            doc.rect(margin, y, contentW, 6, "F");
+            doc.setTextColor(200, 80, 30);
+            doc.setFontSize(7);
+            doc.setFont("helvetica", "bold");
+            doc.text(`ARRETES (${ar.arrearsMonths.length} mois impayes)`, margin + 2, y + 4.5);
+            doc.text(`${ar.arrearsAmount.toLocaleString("fr-FR")} MRU`, pageW - margin - 2, y + 4.5, { align: "right" });
+            y += 6;
+
+            doc.setFontSize(7);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(180, 80, 40);
+            // Arrears months in columns
+            const colW = 42;
+            const cols = Math.floor(contentW / colW);
+            ar.arrearsMonths.forEach((m, mi2) => {
+              if (mi2 > 0 && mi2 % cols === 0) { y += 5; if (y > 275) { doc.addPage(); y = 20; } }
+              const col = mi2 % cols;
+              doc.text(`✗ ${m}`, margin + 2 + col * colW, y + 4);
+            });
+            y += 6;
+
+            if (y > 270) { doc.addPage(); y = 20; }
+            doc.setFillColor(255, 245, 235);
+            doc.roundedRect(margin, y, contentW, 7, 1, 1, "F");
+            doc.setTextColor(200, 80, 30);
+            doc.setFontSize(7);
+            doc.setFont("helvetica", "italic");
+            doc.text(`Action requise: ${ar.arrearsAmount.toLocaleString("fr-FR")} MRU a regulariser pour etre a jour.`, margin + 2, y + 5);
+            y += 9;
+          } else if (allCots.length > 0) {
+            if (y > 270) { doc.addPage(); y = 20; }
+            doc.setFillColor(235, 250, 235);
+            doc.roundedRect(margin, y, contentW, 6, 1, 1, "F");
+            doc.setTextColor(34, 139, 34);
+            doc.setFontSize(7);
+            doc.setFont("helvetica", "italic");
+            doc.text("✓ A jour — aucun arrete.", margin + 2, y + 4.5);
+            y += 8;
+          }
+          y += 4;
+        });
 
       } else if (reportType === "membres") {
         const actifs = membres.filter(m => m.statut === "actif");
@@ -356,7 +518,7 @@ export default function ExportPDF({ cotisations = [], depenses = [], membres = [
               <p>- Logo officiel COACUM</p>
               {reportType === "financier" && <p>- Resume financier (cotisations, depenses, solde)</p>}
               {reportType === "membres" && <p>- Liste complete des membres (actifs et inactifs)</p>}
-              {reportType === "cotisations" && <p>- Toutes les cotisations et dons avec totaux</p>}
+              {reportType === "cotisations" && <p>- Detail par membre (cotisations + arrieres)</p>}
               <p>- Section signatures (President, Tresorier, Secretaire)</p>
             </div>
 
