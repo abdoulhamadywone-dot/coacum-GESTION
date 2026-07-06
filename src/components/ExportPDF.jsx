@@ -138,7 +138,36 @@ export default function ExportPDF({ cotisations = [], depenses = [], membres = [
         y += 8;
       };
 
-      if (reportType === "membres") {
+      if (reportType === "cotisations") {
+        const sortedCots = [...cotisations].sort((a, b) => {
+          if (b.annee !== a.annee) return b.annee - a.annee;
+          const ma = MOIS.indexOf(a.mois), mb = MOIS.indexOf(b.mois);
+          return mb - ma;
+        });
+        const totalCot = sortedCots.reduce((s, c) => s + (c.montant || 0), 0);
+        const dons = sortedCots.filter(c => c.montant === 1000);
+        const cotsStd = sortedCots.filter(c => c.montant !== 1000);
+
+        const cardH = 20;
+        const cardW = (contentW - 8) / 3;
+        [[margin, "TOTAL COTISATIONS", `${totalCot.toLocaleString("fr-FR")} MRU`, 34, 139, 34],
+         [margin + cardW + 4, "COTISATIONS STANDARD", `${cotsStd.reduce((s,c)=>s+(c.montant||0),0).toLocaleString("fr-FR")} MRU`, 245, 158, 11],
+         [margin + (cardW + 4) * 2, "DONS", `${dons.reduce((s,c)=>s+(c.montant||0),0).toLocaleString("fr-FR")} MRU`, 139, 92, 246]].forEach(([x, label, value, r, g, b]) => {
+          doc.setFillColor(r, g, b);
+          doc.roundedRect(x, y, cardW, cardH, 3, 3, "F");
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(7);
+          doc.setFont("helvetica", "normal");
+          doc.text(label, x + cardW / 2, y + 6, { align: "center" });
+          doc.setFontSize(10);
+          doc.setFont("helvetica", "bold");
+          doc.text(String(value), x + cardW / 2, y + 14, { align: "center" });
+        });
+        y += cardH + 8;
+
+        drawTable(`Toutes les Cotisations (${sortedCots.length})`, ["Membre", "Mois", "Annee", "Montant (MRU)"], sortedCots.map(c => [c.membre_nom, c.mois, c.annee, `${c.montant.toLocaleString("fr-FR")} MRU`]), [70, 35, 25, 44], [34, 120, 60], true);
+
+      } else if (reportType === "membres") {
         const actifs = membres.filter(m => m.statut === "actif");
         const inactifs = membres.filter(m => m.statut !== "actif");
 
@@ -251,6 +280,8 @@ export default function ExportPDF({ cotisations = [], depenses = [], membres = [
 
       const filename = reportType === "membres"
         ? `COACUM_Membres_${new Date().toISOString().slice(0, 10)}.pdf`
+        : reportType === "cotisations"
+        ? `COACUM_Toutes_Cotisations_${new Date().toISOString().slice(0, 10)}.pdf`
         : moisFilter === "all" ? `COACUM_Bilan_${anneeFilter}.pdf` : `COACUM_Bilan_${moisFilter}_${anneeFilter}.pdf`;
       doc.save(filename);
       setOpen(false);
@@ -289,11 +320,12 @@ export default function ExportPDF({ cotisations = [], depenses = [], membres = [
                 <SelectContent>
                   <SelectItem value="financier">Bilan Financier</SelectItem>
                   <SelectItem value="membres">Liste des Membres</SelectItem>
+                  <SelectItem value="cotisations">Toutes les Cotisations</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {reportType === "financier" && (
+            {(reportType === "financier") && (
               <>
                 <div>
                   <label className="text-sm font-medium">Periode</label>
@@ -324,6 +356,7 @@ export default function ExportPDF({ cotisations = [], depenses = [], membres = [
               <p>- Logo officiel COACUM</p>
               {reportType === "financier" && <p>- Resume financier (cotisations, depenses, solde)</p>}
               {reportType === "membres" && <p>- Liste complete des membres (actifs et inactifs)</p>}
+              {reportType === "cotisations" && <p>- Toutes les cotisations et dons avec totaux</p>}
               <p>- Section signatures (President, Tresorier, Secretaire)</p>
             </div>
 

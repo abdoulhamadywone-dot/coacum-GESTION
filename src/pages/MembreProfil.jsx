@@ -2,7 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { ArrowLeft, Phone, MessageCircle, Calendar, Wallet, TrendingUp, UserCheck, UserX, Edit2, Users, MapPin, Trash2 } from "lucide-react";
+import { ArrowLeft, Phone, MessageCircle, Calendar, Wallet, TrendingUp, UserCheck, UserX, Edit2, Users, MapPin, Trash2, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import MemberAssistant from "@/components/MemberAssistant";
 import AddCotisationDialog from "@/components/AddCotisationDialog";
+import generateRecuPDF from "@/components/RecuPDF";
 
 const AVATAR_COLORS = [
   "from-amber-400 to-orange-500",
@@ -197,11 +198,22 @@ export default function MembreProfil() {
       {/* Historique cotisations */}
       <div className="bg-card border border-border rounded-2xl overflow-hidden">
         <div className="px-4 py-3 border-b border-border flex items-center justify-between">
-          <h2 className="font-semibold text-sm">Historique des cotisations</h2>
-          <div className="flex items-center gap-3">
-            {isAdmin && <AddCotisationDialog membre={membre} />}
-            <span className="text-xs text-muted-foreground">{membreCots.length} paiement(s)</span>
-          </div>
+        <h2 className="font-semibold text-sm">Historique des cotisations</h2>
+        <div className="flex items-center gap-3">
+          {isAdmin && <AddCotisationDialog membre={membre} />}
+          {membreCots.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 h-7"
+              onClick={() => generateRecuPDF(membre, membreCots)}
+              title="Exporter le reçu PDF"
+            >
+              <FileDown className="h-3.5 w-3.5" /> Reçu PDF
+            </Button>
+          )}
+          <span className="text-xs text-muted-foreground">{membreCots.length} paiement(s)</span>
+        </div>
         </div>
         {membreCots.length === 0 ? (
           <p className="text-center text-sm text-muted-foreground py-8">Aucune cotisation enregistrée.</p>
