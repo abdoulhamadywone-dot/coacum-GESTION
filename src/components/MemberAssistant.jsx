@@ -13,13 +13,13 @@ const SUGGESTIONS = [
 
 export default function MemberAssistant({ membre, cotisations, onDataChanged }) {
   const [expanded, setExpanded] = useState(false);
-  const [chatReady, setChatReady] = useState(false);
   const [conversation, setConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [initError, setInitError] = useState(null);
   const bottomRef = useRef(null);
+  const pendingMessage = useRef(null);
 
   const membreCots = cotisations.filter(c => c.membre_nom === membre.nom);
   const totalPaye = membreCots.reduce((s, c) => s + (c.montant || 0), 0);
@@ -47,16 +47,23 @@ export default function MemberAssistant({ membre, cotisations, onDataChanged }) 
 
       await base44.agents.addMessage(conv, { role: "user", content: contextLines.join("\n") });
       setConversation(conv);
+
+      // If user typed/sent a message while initializing, send it now
+      if (pendingMessage.current) {
+        const msg = pendingMessage.current;
+        pendingMessage.current = null;
+        await base44.agents.addMessage(conv, { role: "user", content: msg });
+      }
     } catch (err) {
       setInitError(err.message || "Erreur de connexion à l'assistant");
     }
   };
 
   useEffect(() => {
-    if (expanded && chatReady && !conversation && !initError) {
+    if (expanded && !conversation && !initError) {
       initConversation();
     }
-  }, [expanded, chatReady]);
+  }, [expanded]);
 
   useEffect(() => {
     if (!conversation?.id) return;
@@ -88,8 +95,14 @@ export default function MemberAssistant({ membre, cotisations, onDataChanged }) 
 
   const sendMessage = async (text) => {
     const content = text || input.trim();
-    if (!content || !conversation || sending) return;
+    if (!content || sending) return;
     setInput("");
+    // Queue the message if conversation isn't ready yet
+    if (!conversation) {
+      pendingMessage.current = content;
+      setSending(true);
+      return;
+    }
     setSending(true);
     try {
       await base44.agents.addMessage(conversation, { role: "user", content });
@@ -149,14 +162,6 @@ export default function MemberAssistant({ membre, cotisations, onDataChanged }) 
                 </div>
                 <Button variant="outline" size="sm" onClick={reset}>Réessayer</Button>
               </div>
-            ) : !conversation ? (
-              <div className="flex items-center justify-center h-full">
-                <div className="flex gap-1 items-center h-5">
-                  <span className="w-2 h-2 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                  <span className="w-2 h-2 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                  <span className="w-2 h-2 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-                </div>
-              </div>
             ) : visibleMessages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full gap-3">
                 <p className="text-xs text-muted-foreground text-center max-w-[240px]">
@@ -210,7 +215,7 @@ export default function MemberAssistant({ membre, cotisations, onDataChanged }) 
               />
               <Button
                 onClick={() => sendMessage()}
-                disabled={!input.trim() || sending || !conversation}
+                disabled={!input.trim() || sending}
                 className="rounded-xl h-10 w-10 p-0 bg-amber-500 hover:bg-amber-600 flex-shrink-0"
               >
                 <Send className="h-4 w-4" />
