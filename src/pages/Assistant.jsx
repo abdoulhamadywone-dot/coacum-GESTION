@@ -27,22 +27,27 @@ export default function Assistant() {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [initError, setInitError] = useState(null);
   const bottomRef = useRef(null);
 
   // Create conversation on mount
   useEffect(() => {
-    if (!user) return;
+    if (!user || conversation || initError) return;
     const init = async () => {
-      const conv = await base44.agents.createConversation({
-        agent_name: "coacum_assistant",
-        metadata: { name: `Session de ${user.full_name || "Membre"}` },
-      });
-      // Inject system context with user role (invisible to user)
-      await base44.agents.addMessage(conv, {
-        role: "user",
-        content: `[SYSTÈME] Utilisateur connecté : ${user.full_name || "Inconnu"} — Rôle : ${user.role || "user"}. Applique les règles de sécurité correspondantes.`,
-      });
-      setConversation(conv);
+      try {
+        const conv = await base44.agents.createConversation({
+          agent_name: "coacum_assistant",
+          metadata: { name: `Session de ${user.full_name || "Membre"}` },
+        });
+        // Inject system context with user role (invisible to user)
+        await base44.agents.addMessage(conv, {
+          role: "user",
+          content: `[SYSTÈME] Utilisateur connecté : ${user.full_name || "Inconnu"} — Rôle : ${user.role || "user"}. Applique les règles de sécurité correspondantes.`,
+        });
+        setConversation(conv);
+      } catch (err) {
+        setInitError(err.message || "Erreur de connexion à l'assistant");
+      }
     };
     init();
   }, [user?.id]);
@@ -74,16 +79,21 @@ export default function Assistant() {
   };
 
   const resetConversation = async () => {
-    const conv = await base44.agents.createConversation({
-      agent_name: "coacum_assistant",
-      metadata: { name: `Session de ${user?.full_name || "Membre"}` },
-    });
-    await base44.agents.addMessage(conv, {
-      role: "user",
-      content: `[SYSTÈME] Utilisateur connecté : ${user?.full_name || "Inconnu"} — Rôle : ${user?.role || "user"}. Applique les règles de sécurité correspondantes.`,
-    });
-    setConversation(conv);
-    setMessages([]);
+    setInitError(null);
+    try {
+      const conv = await base44.agents.createConversation({
+        agent_name: "coacum_assistant",
+        metadata: { name: `Session de ${user?.full_name || "Membre"}` },
+      });
+      await base44.agents.addMessage(conv, {
+        role: "user",
+        content: `[SYSTÈME] Utilisateur connecté : ${user?.full_name || "Inconnu"} — Rôle : ${user?.role || "user"}. Applique les règles de sécurité correspondantes.`,
+      });
+      setConversation(conv);
+      setMessages([]);
+    } catch (err) {
+      setInitError(err.message || "Erreur de connexion à l'assistant");
+    }
   };
 
   const exportConversation = () => {
@@ -232,7 +242,24 @@ export default function Assistant() {
       {activeTab === "chat" && (
         <>
           <div className="flex-1 overflow-y-auto px-4 md:px-6 py-6 space-y-4">
-            {messages.length === 0 ? (
+            {initError ? (
+              <div className="flex flex-col items-center justify-center h-full gap-4 text-center py-8">
+                <div className="w-16 h-16 rounded-2xl bg-red-50 dark:bg-red-950/20 flex items-center justify-center shadow-xl">
+                  <Bot className="h-8 w-8 text-red-400" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-foreground">Assistant indisponible</h2>
+                  <p className="text-muted-foreground mt-1 text-sm max-w-sm">
+                    {initError.includes("limit") || initError.includes("plan")
+                      ? "Le quota mensuel de l'assistant IA est atteint. Veuillez mettre à niveau votre plan pour continuer à utiliser l'assistant."
+                      : initError}
+                  </p>
+                </div>
+                <Button variant="outline" onClick={resetConversation} className="gap-2">
+                  <RefreshCw className="h-4 w-4" /> Réessayer
+                </Button>
+              </div>
+            ) : messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full gap-6 text-center py-8">
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-xl">
                   <Bot className="h-8 w-8 text-white" />

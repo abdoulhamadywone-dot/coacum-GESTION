@@ -26,6 +26,8 @@ export default function Administration() {
   const [chatSending, setChatSending] = useState(false);
   const [conversation, setConversation] = useState(null);
   const [chatMessages, setChatMessages] = useState([]);
+  const [chatInitError, setChatInitError] = useState(null);
+  const [chatReady, setChatReady] = useState(false);
   const bottomRef = useRef(null);
 
   // Fetch all data
@@ -37,18 +39,22 @@ export default function Administration() {
   const { data: articles = [] } = useQuery({ queryKey: ["articles"], queryFn: () => base44.entities.Article.list(), enabled: isAdmin });
   const { data: participations = [] } = useQuery({ queryKey: ["participations"], queryFn: () => base44.entities.Participation.list(), enabled: isAdmin });
 
-  // Init agent chat
+  // Lazy init agent chat — only when admin opens the chat section
   useEffect(() => {
-    if (!isAdmin) return;
+    if (!isAdmin || !chatReady || conversation || chatInitError) return;
     const init = async () => {
-      const conv = await base44.agents.createConversation({
-        agent_name: "coacum_assistant",
-        metadata: { name: "Admin Training Session" },
-      });
-      setConversation(conv);
+      try {
+        const conv = await base44.agents.createConversation({
+          agent_name: "coacum_assistant",
+          metadata: { name: "Admin Training Session" },
+        });
+        setConversation(conv);
+      } catch (err) {
+        setChatInitError(err.message || "Erreur de connexion");
+      }
     };
     init();
-  }, [isAdmin]);
+  }, [isAdmin, chatReady]);
 
   useEffect(() => {
     if (!conversation?.id) return;
@@ -75,12 +81,17 @@ export default function Administration() {
   };
 
   const resetChat = async () => {
-    const conv = await base44.agents.createConversation({
-      agent_name: "coacum_assistant",
-      metadata: { name: "Admin Training Session" },
-    });
-    setConversation(conv);
-    setChatMessages([]);
+    setChatInitError(null);
+    try {
+      const conv = await base44.agents.createConversation({
+        agent_name: "coacum_assistant",
+        metadata: { name: "Admin Training Session" },
+      });
+      setConversation(conv);
+      setChatMessages([]);
+    } catch (err) {
+      setChatInitError(err.message || "Erreur de connexion");
+    }
   };
 
   if (!isAdmin) {
@@ -341,7 +352,32 @@ export default function Administration() {
         <div className="flex flex-col" style={{ height: "400px" }}>
           {/* Messages */}
           <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-            {chatMessages.length === 0 || chatMessages.every(m => m.role === "user" && m.content?.startsWith("[SYSTÈME]")) ? (
+            {!chatReady ? (
+              <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
+                <Brain className="h-8 w-8 text-muted-foreground/30" />
+                <p className="text-sm text-muted-foreground max-w-xs">
+                  Cliquez pour démarrer une session d'entraînement avec l'assistant IA.
+                </p>
+                <Button onClick={() => setChatReady(true)} className="gap-2">
+                  <Sparkles className="h-4 w-4" /> Démarrer
+                </Button>
+              </div>
+            ) : chatInitError ? (
+              <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
+                <div className="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-950/20 flex items-center justify-center">
+                  <Bot className="h-6 w-6 text-red-400" />
+                </div>
+                <div>
+                  <p className="font-semibold text-sm text-foreground">Assistant indisponible</p>
+                  <p className="text-xs text-muted-foreground mt-1 max-w-[280px]">
+                    {chatInitError.includes("limit") || chatInitError.includes("plan")
+                      ? "Le quota mensuel de l'assistant IA est atteint. Veuillez mettre à niveau votre plan."
+                      : chatInitError}
+                  </p>
+                </div>
+                <Button variant="outline" size="sm" onClick={resetChat}>Réessayer</Button>
+              </div>
+            ) : chatMessages.length === 0 || chatMessages.every(m => m.role === "user" && m.content?.startsWith("[SYSTÈME]")) ? (
               <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
                 <Bot className="h-8 w-8 text-muted-foreground/30" />
                 <p className="text-sm text-muted-foreground max-w-xs">
@@ -374,7 +410,7 @@ export default function Administration() {
 
           {/* Input */}
           <div className="px-4 py-3 border-t border-border bg-muted/20">
-            <div className="flex gap-2">
+            <div className="flex gap-2" style={{ opacity: chatReady && !chatInitError ? 1 : 0.5, pointerEvents: chatReady && !chatInitError ? "auto" : "none" }}>
               <textarea
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}

@@ -25,28 +25,33 @@ export default function AssistantBubble() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [initError, setInitError] = useState(null);
   const bottomRef = useRef(null);
 
   const { data: cotisations = [] } = useQuery({ queryKey: ["cotisations"], queryFn: () => base44.entities.Cotisation.list() });
   const { data: depenses = [] } = useQuery({ queryKey: ["depenses"], queryFn: () => base44.entities.Depense.list() });
   const { data: membres = [] } = useQuery({ queryKey: ["membres"], queryFn: () => base44.entities.Membre.list() });
 
-  // Init conversation when user is ready
+  // Lazy init conversation — only when user opens the chat (saves integration credits)
   useEffect(() => {
-    if (!user) return;
+    if (!open || !user || conversation || initError) return;
     const init = async () => {
-      const conv = await base44.agents.createConversation({
-        agent_name: "coacum_assistant",
-        metadata: { name: `Session de ${user.full_name || "Membre"}` },
-      });
-      await base44.agents.addMessage(conv, {
-        role: "user",
-        content: `[SYSTÈME] Utilisateur connecté : ${user.full_name || "Inconnu"} — Rôle : ${user.role || "user"}. Applique les règles de sécurité correspondantes.`,
-      });
-      setConversation(conv);
+      try {
+        const conv = await base44.agents.createConversation({
+          agent_name: "coacum_assistant",
+          metadata: { name: `Session de ${user.full_name || "Membre"}` },
+        });
+        await base44.agents.addMessage(conv, {
+          role: "user",
+          content: `[SYSTÈME] Utilisateur connecté : ${user.full_name || "Inconnu"} — Rôle : ${user.role || "user"}. Applique les règles de sécurité correspondantes.`,
+        });
+        setConversation(conv);
+      } catch (err) {
+        setInitError(err.message || "Erreur de connexion à l'assistant");
+      }
     };
     init();
-  }, [user?.id]);
+  }, [open, user?.id]);
 
   // Subscribe to updates
   useEffect(() => {
@@ -81,16 +86,21 @@ export default function AssistantBubble() {
   };
 
   const resetConversation = async () => {
-    const conv = await base44.agents.createConversation({
-      agent_name: "coacum_assistant",
-      metadata: { name: `Session de ${user?.full_name || "Membre"}` },
-    });
-    await base44.agents.addMessage(conv, {
-      role: "user",
-      content: `[SYSTÈME] Utilisateur connecté : ${user?.full_name || "Inconnu"} — Rôle : ${user?.role || "user"}. Applique les règles de sécurité correspondantes.`,
-    });
-    setConversation(conv);
-    setMessages([]);
+    setInitError(null);
+    try {
+      const conv = await base44.agents.createConversation({
+        agent_name: "coacum_assistant",
+        metadata: { name: `Session de ${user?.full_name || "Membre"}` },
+      });
+      await base44.agents.addMessage(conv, {
+        role: "user",
+        content: `[SYSTÈME] Utilisateur connecté : ${user?.full_name || "Inconnu"} — Rôle : ${user?.role || "user"}. Applique les règles de sécurité correspondantes.`,
+      });
+      setConversation(conv);
+      setMessages([]);
+    } catch (err) {
+      setInitError(err.message || "Erreur de connexion à l'assistant");
+    }
   };
 
   const isThinking = sending || (messages.length > 0 && messages[messages.length - 1]?.role === "user");
@@ -159,7 +169,24 @@ export default function AssistantBubble() {
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto px-3 py-4 space-y-3">
-            {visibleMessages.length === 0 ? (
+            {initError ? (
+              <div className="flex flex-col items-center justify-center h-full gap-3 text-center px-4">
+                <div className="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-950/20 flex items-center justify-center">
+                  <Bot className="h-6 w-6 text-red-400" />
+                </div>
+                <div>
+                  <p className="font-semibold text-sm text-foreground">Assistant indisponible</p>
+                  <p className="text-xs text-muted-foreground mt-1 max-w-[260px]">
+                    {initError.includes("limit") || initError.includes("plan")
+                      ? "Le quota mensuel de l'assistant IA est atteint. Veuillez mettre à niveau votre plan."
+                      : initError}
+                  </p>
+                </div>
+                <button onClick={resetConversation} className="text-xs px-3 py-1.5 rounded-lg border border-border hover:bg-muted transition-colors">
+                  Réessayer
+                </button>
+              </div>
+            ) : visibleMessages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-2">
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg">
                   <Bot className="h-6 w-6 text-white" />
