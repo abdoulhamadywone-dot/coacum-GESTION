@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import MemberAssistant from "@/components/MemberAssistant";
 
 const AVATAR_COLORS = [
   "from-amber-400 to-orange-500",
@@ -173,6 +174,11 @@ export default function MembreProfil() {
           <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">Notes</p>
           <p className="text-sm text-foreground">{membre.notes}</p>
         </div>
+      )}
+
+      {/* Assistant IA - Admin only */}
+      {isAdmin && (
+        <MemberAssistant membre={membre} cotisations={cotisations} />
       )}
 
       {/* Historique cotisations */}
