@@ -2,7 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { ArrowLeft, Phone, MessageCircle, Calendar, Wallet, TrendingUp, UserCheck, UserX, Edit2, Users, MapPin } from "lucide-react";
+import { ArrowLeft, Phone, MessageCircle, Calendar, Wallet, TrendingUp, UserCheck, UserX, Edit2, Users, MapPin, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -63,6 +63,11 @@ export default function MembreProfil() {
   const updateMembre = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Membre.update(id, data),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["membres"] }); setEditOpen(false); toast.success("Membre modifié"); }
+  });
+
+  const deleteCotisation = useMutation({
+    mutationFn: (id) => base44.entities.Cotisation.delete(id),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["cotisations"] }); toast.success("Cotisation supprimée"); }
   });
 
   if (!membre) {
@@ -205,10 +210,25 @@ export default function MembreProfil() {
             {membreCots.map(c => (
               <div key={c.id} className="flex items-center justify-between px-4 py-3 hover:bg-muted/20 transition-colors">
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                  <span className="text-sm font-medium">{c.mois} {c.annee}</span>
+                  <div className={`w-2 h-2 rounded-full ${c.paye ? "bg-emerald-500" : "bg-amber-400"}`} />
+                  <div>
+                    <span className="text-sm font-medium">{c.mois} {c.annee}</span>
+                    {!c.paye && <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">Impayé</span>}
+                  </div>
                 </div>
-                <span className="text-sm font-bold text-emerald-600">{c.montant?.toLocaleString("fr-FR")} MRU</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-emerald-600">{c.montant?.toLocaleString("fr-FR")} MRU</span>
+                  {isAdmin && (
+                    <button
+                      onClick={() => deleteCotisation.mutate(c.id)}
+                      disabled={deleteCotisation.isPending}
+                      className="text-muted-foreground hover:text-red-500 transition-colors p-1 rounded"
+                      title="Supprimer cette cotisation"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
