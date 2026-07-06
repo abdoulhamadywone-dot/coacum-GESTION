@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import MemberAssistant from "@/components/MemberAssistant";
+import AddCotisationDialog from "@/components/AddCotisationDialog";
 
 const AVATAR_COLORS = [
   "from-amber-400 to-orange-500",
@@ -192,7 +193,10 @@ export default function MembreProfil() {
       <div className="bg-card border border-border rounded-2xl overflow-hidden">
         <div className="px-4 py-3 border-b border-border flex items-center justify-between">
           <h2 className="font-semibold text-sm">Historique des cotisations</h2>
-          <span className="text-xs text-muted-foreground">{membreCots.length} paiement(s)</span>
+          <div className="flex items-center gap-3">
+            {isAdmin && <AddCotisationDialog membre={membre} />}
+            <span className="text-xs text-muted-foreground">{membreCots.length} paiement(s)</span>
+          </div>
         </div>
         {membreCots.length === 0 ? (
           <p className="text-center text-sm text-muted-foreground py-8">Aucune cotisation enregistrée.</p>
