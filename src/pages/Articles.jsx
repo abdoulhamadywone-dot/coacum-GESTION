@@ -1,20 +1,21 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Plus, Upload, X } from "lucide-react";
+import { Plus, Upload, X, Search, Newspaper } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/AuthContext";
-import ArticleCard from "../components/ArticleCard";
+import ArticleCard from "@/components/ArticleCard";
 
 export default function Articles() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [form, setForm] = useState({ titre: "", contenu: "", auteur: "", statut: "publié", date_publication: new Date().toISOString().slice(0,10), image_url: "", document_url: "", document_nom: "" });
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingDoc, setUploadingDoc] = useState(false);
@@ -23,6 +24,14 @@ export default function Articles() {
     queryKey: ["articles-publies"],
     queryFn: () => base44.entities.Article.filter({ statut: "publié" }, "-date_publication"),
   });
+
+  const filteredArticles = articles.filter(a =>
+    !searchQuery ||
+    a.titre?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    a.contenu?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  const featuredArticle = filteredArticles[0];
+  const restArticles = filteredArticles.slice(1);
 
   const createArt = useMutation({
     mutationFn: (data) => base44.entities.Article.create(data),
@@ -67,26 +76,49 @@ export default function Articles() {
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Actualités</h1>
-          <p className="text-muted-foreground mt-1">Les dernières nouvelles de COACUM</p>
+    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6">
+      {/* Hero header */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-secondary to-orange-600 p-6 md:p-8 text-white shadow-lg">
+        <div className="absolute inset-0 bg-black/10" />
+        <div className="relative flex items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Newspaper className="h-5 w-5" />
+              <span className="text-xs font-semibold uppercase tracking-wider opacity-90">COACUM</span>
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold leading-tight">Actualités</h1>
+            <p className="opacity-90 mt-1 text-sm">Restez informé des dernières nouvelles de l'association</p>
+          </div>
+          {isAdmin && (
+            <Button onClick={openDialog} variant="secondary" className="gap-2 flex-shrink-0 shadow-md">
+              <Plus className="h-4 w-4" /> <span className="hidden sm:inline">Nouvel article</span>
+            </Button>
+          )}
         </div>
-        {isAdmin && (
-          <Button onClick={openDialog} className="gap-2">
-            <Plus className="h-4 w-4" /> Ajouter un article
-          </Button>
-        )}
       </div>
 
-      {/* Articles list */}
+      {/* Search */}
+      {articles.length > 0 && (
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Rechercher un article..."
+            className="pl-10 max-w-md"
+          />
+        </div>
+      )}
+
+      {/* Articles */}
       {isLoading ? (
         <div className="flex justify-center py-16"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>
       ) : articles.length === 0 ? (
         <div className="text-center py-20">
-          <p className="text-xl font-medium text-muted-foreground">Aucun article publié</p>
+          <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+            <Newspaper className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <p className="text-xl font-medium text-foreground">Aucun article publié</p>
           <p className="text-sm text-muted-foreground mt-2">Revenez bientôt pour les actualités</p>
           {isAdmin && (
             <Button onClick={openDialog} className="mt-4 gap-2" variant="outline">
@@ -94,12 +126,22 @@ export default function Articles() {
             </Button>
           )}
         </div>
+      ) : filteredArticles.length === 0 ? (
+        <p className="text-center py-12 text-muted-foreground">Aucun résultat pour « {searchQuery} »</p>
       ) : (
-        <div className="space-y-8">
-          {articles.map(a => (
-            <ArticleCard key={a.id} article={a} isAdmin={isAdmin} />
-          ))}
-        </div>
+        <>
+          {/* Featured article */}
+          {featuredArticle && !searchQuery && (
+            <ArticleCard key={featuredArticle.id} article={featuredArticle} isAdmin={isAdmin} featured />
+          )}
+
+          {/* Grid of remaining articles */}
+          <div className={`grid gap-6 ${featuredArticle && !searchQuery ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
+            {(searchQuery ? filteredArticles : restArticles).map(a => (
+              <ArticleCard key={a.id} article={a} isAdmin={isAdmin} />
+            ))}
+          </div>
+        </>
       )}
 
       {/* Create Article Dialog (Admin) */}
