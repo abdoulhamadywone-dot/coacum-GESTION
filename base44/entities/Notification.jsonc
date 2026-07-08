@@ -1,0 +1,64 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "titre": {
+      "type": "string",
+      "title": "Titre"
+    },
+    "contenu": {
+      "type": "string",
+      "title": "Contenu"
+    },
+    "type": {
+      "type": "string",
+      "title": "Type",
+      "enum": [
+        "article",
+        "evenement",
+        "message"
+      ],
+      "default": "article"
+    },
+    "target_role": {
+      "type": "string",
+      "title": "R\u00f4le cible",
+      "enum": [
+        "all",
+        "admin"
+      ],
+      "default": "all"
+    },
+    "link": {
+      "type": "string",
+      "title": "Lien"
+    },
+    "read_by_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "Lus par",
+      "default": []
+    }
+  },
+  "required": [
+    "titre",
+    "contenu",
+    "type"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": null,
+    "update": null,
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -8,6 +8,7 @@ import useDarkMode from "../hooks/useDarkMode";
 import AssistantBubble from "@/components/AssistantBubble";
 import OfflineIndicator from "@/components/OfflineIndicator";
 import AdminChatBubble from "@/components/AdminChatBubble";
+import NotificationsBell from "@/components/NotificationsBell";
 
 const allNavItems = [
   { path: "/", label: "Tableau de bord", icon: LayoutDashboard, adminOnly: true },
@@ -181,6 +182,7 @@ export default function Layout() {
             </div>
           )}
           <div className="flex items-center gap-2 px-2">
+            <NotificationsBell />
             {/* Bell desktop */}
             <div className="relative">
               <button
@@ -223,6 +225,7 @@ export default function Layout() {
             <span className="font-bold gradient-text">COACUM</span>
           </div>
           <div className="flex items-center gap-2">
+            <NotificationsBell />
             <div className="relative">
               <button onClick={() => setShowNotif(!showNotif)} className="relative p-1.5">
                 <Bell className="h-5 w-5 text-muted-foreground" />
