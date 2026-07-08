@@ -77,19 +77,37 @@ export default function ArticleCard({ article, isAdmin, featured = false }) {
   const shouldTruncate = content.length > 280 && !expanded;
   const displayContent = shouldTruncate ? content.slice(0, 280) + "..." : content;
 
+  const CATEGORY_STYLES = {
+    "Annonce": "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+    "Événement": "bg-blue-500/15 text-blue-600 dark:text-blue-400",
+    "Activité": "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
+    "Communiqué": "bg-purple-500/15 text-purple-600 dark:text-purple-400",
+    "Culture": "bg-rose-500/15 text-rose-600 dark:text-rose-400",
+    "Membre": "bg-cyan-500/15 text-cyan-600 dark:text-cyan-400",
+  };
+  const catStyle = CATEGORY_STYLES[article.categorie] || "bg-primary/10 text-primary";
+
   return (
-    <article className={`group bg-card rounded-2xl border border-border overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 ${featured ? 'md:flex md:flex-row-reverse' : ''}`}>
+    <article className={`group relative bg-card rounded-2xl border border-border overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 ${featured ? 'md:flex md:flex-row-reverse' : ''}`}>
       {/* Image */}
       {article.image_url && (
         <div className={`relative overflow-hidden ${featured ? 'md:w-1/2' : ''}`}>
           <img
             src={article.image_url}
             alt={article.titre}
-            className={`w-full object-cover transition-transform duration-500 group-hover:scale-105 ${featured ? 'h-56 md:h-full min-h-[280px]' : 'h-48'}`}
+            className={`w-full object-cover transition-transform duration-700 group-hover:scale-110 ${featured ? 'h-56 md:h-full min-h-[280px]' : 'h-48'}`}
           />
+          {/* Gradient overlay on hover */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           {featured && (
-            <span className="absolute top-3 left-3 bg-primary text-primary-foreground text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md">
-              ★ À LA UNE
+            <span className="absolute top-3 left-3 bg-gradient-to-r from-primary to-secondary text-primary-foreground text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
+              <span className="text-xs">★</span> À LA UNE
+            </span>
+          )}
+          {/* Category badge on image for non-featured */}
+          {!featured && article.categorie && (
+            <span className={`absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold backdrop-blur-md shadow-md ${catStyle}`}>
+              {article.categorie}
             </span>
           )}
         </div>
@@ -100,7 +118,7 @@ export default function ArticleCard({ article, isAdmin, featured = false }) {
         {/* Meta */}
         <div className="flex items-center gap-2 text-[11px] text-muted-foreground mb-2 flex-wrap">
           {article.categorie && (
-            <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold">
+            <span className={`px-2 py-0.5 rounded-full font-semibold ${catStyle}`}>
               {article.categorie}
             </span>
           )}
@@ -119,7 +137,7 @@ export default function ArticleCard({ article, isAdmin, featured = false }) {
         </div>
 
         {/* Title */}
-        <h2 className={`font-bold text-foreground leading-snug mb-2 ${featured ? 'text-2xl md:text-3xl' : 'text-lg'}`}>
+        <h2 className={`font-bold text-foreground leading-snug mb-2 group-hover:text-primary transition-colors duration-200 ${featured ? 'text-2xl md:text-3xl' : 'text-lg'}`}>
           {article.titre}
         </h2>
 
@@ -143,15 +161,15 @@ export default function ArticleCard({ article, isAdmin, featured = false }) {
             href={article.document_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 mt-3 px-3 py-2 rounded-lg bg-muted/60 hover:bg-muted transition-colors text-xs text-foreground"
+            className="flex items-center gap-2 mt-3 px-3 py-2 rounded-lg bg-muted/60 hover:bg-primary/10 hover:text-primary transition-all text-xs text-foreground group/doc"
           >
-            <FileText className="h-4 w-4 text-primary" />
+            <FileText className="h-4 w-4 text-primary group-hover/doc:scale-110 transition-transform" />
             <span className="truncate flex-1">{article.document_nom || "Document joint"}</span>
           </a>
         )}
 
         {/* Actions */}
-        <div className="flex items-center gap-1 mt-4 pt-3 border-t border-border">
+        <div className="flex items-center gap-1 mt-4 pt-3 border-t border-border border-dashed">
           <button
             onClick={() => toggleLike.mutate("like")}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${

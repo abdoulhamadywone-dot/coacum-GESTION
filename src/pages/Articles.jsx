@@ -124,12 +124,12 @@ export default function Articles() {
           {/* Category pills */}
           <div className="flex flex-wrap gap-2">
             <button onClick={() => setFilterCategorie("all")}
-              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all border ${filterCategorie === "all" ? 'bg-primary text-white border-primary' : 'border-border text-muted-foreground hover:bg-muted'}`}>
+              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all border ${filterCategorie === "all" ? 'bg-primary text-white border-primary shadow-md scale-105' : 'border-border text-muted-foreground hover:bg-muted hover:scale-105'}`}>
               Toutes
             </button>
             {CATEGORIES.map(cat => (
               <button key={cat} onClick={() => setFilterCategorie(cat)}
-                className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all border ${filterCategorie === cat ? 'bg-primary text-white border-primary' : 'border-border text-muted-foreground hover:bg-muted'}`}>
+                className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all border ${filterCategorie === cat ? 'bg-primary text-white border-primary shadow-md scale-105' : 'border-border text-muted-foreground hover:bg-muted hover:scale-105'}`}>
                 {cat}
               </button>
             ))}

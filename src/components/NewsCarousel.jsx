@@ -23,20 +23,20 @@ export default function NewsCarousel({ articles = [] }) {
     <div className="relative w-full h-64 md:h-80 rounded-3xl overflow-hidden shadow-xl group">
       {article.image_url ? (
         <img src={article.image_url} alt={article.titre}
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700" />
+          className="absolute inset-0 w-full h-full object-cover animate-[kenburns_6s_ease-out_forwards]" key={current} />
       ) : (
         <div className="absolute inset-0 bg-gradient-to-br from-primary via-secondary to-orange-600" />
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
 
       {/* Content */}
       <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8 text-white">
         {article.categorie && (
-          <span className="inline-block bg-primary text-primary-foreground text-[10px] font-bold px-2.5 py-1 rounded-full mb-2 uppercase tracking-wide">
+          <span className="inline-block bg-gradient-to-r from-primary to-secondary text-primary-foreground text-[10px] font-bold px-3 py-1.5 rounded-full mb-3 uppercase tracking-wide shadow-lg">
             {article.categorie}
           </span>
         )}
-        <h2 className="text-xl md:text-3xl font-bold leading-tight mb-1 line-clamp-2">{article.titre}</h2>
+        <h2 className="text-xl md:text-3xl font-bold leading-tight mb-1 line-clamp-2 drop-shadow-lg">{article.titre}</h2>
         <p className="text-sm opacity-80 line-clamp-1 md:line-clamp-2 max-w-2xl">{article.contenu}</p>
         {article.date_publication && (
           <p className="text-xs opacity-60 mt-2">
@@ -61,7 +61,7 @@ export default function NewsCarousel({ articles = [] }) {
           <div className="absolute bottom-3 right-4 flex gap-1.5">
             {articles.map((_, i) => (
               <button key={i} onClick={() => setCurrent(i)}
-                className={`h-2 rounded-full transition-all ${i === current ? 'w-6 bg-white' : 'w-2 bg-white/40 hover:bg-white/60'}`} />
+                className={`h-2 rounded-full transition-all duration-300 ${i === current ? 'w-8 bg-white shadow-md' : 'w-2 bg-white/40 hover:bg-white/70'}`} />
             ))}
           </div>
         </>
