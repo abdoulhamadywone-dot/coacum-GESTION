@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import useDarkMode from "../hooks/useDarkMode";
 import AssistantBubble from "@/components/AssistantBubble";
 import OfflineIndicator from "@/components/OfflineIndicator";
+import AdminChatBubble from "@/components/AdminChatBubble";
 
 const allNavItems = [
   { path: "/", label: "Tableau de bord", icon: LayoutDashboard, adminOnly: true },
@@ -316,6 +317,8 @@ export default function Layout() {
       <OfflineIndicator />
       {/* Floating assistant bubble */}
       <AssistantBubble />
+      {/* Admin chat bubble */}
+      <AdminChatBubble />
       {/* WhatsApp contact button */}
       <a
         href="https://wa.me/22249161424"

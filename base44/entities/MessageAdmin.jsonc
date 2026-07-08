@@ -1,0 +1,43 @@
+{
+  "name": "MessageAdmin",
+  "type": "object",
+  "properties": {
+    "contenu": {
+      "type": "string",
+      "title": "Contenu"
+    },
+    "auteur_nom": {
+      "type": "string",
+      "title": "Nom de l'auteur"
+    },
+    "auteur_id": {
+      "type": "string",
+      "title": "ID de l'auteur"
+    }
+  },
+  "required": [
+    "contenu"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
