@@ -9,10 +9,8 @@ import ChatMessageBubble from "@/components/ChatMessageBubble";
 import ExportPDF from "@/components/ExportPDF";
 
 const SUGGESTIONS = [
-  "Membres en retard de cotisation ?",
   "Quel est le solde financier ?",
   "Prochains événements ?",
-  "Nombre de membres actifs ?",
 ];
 
 export default function AssistantBubble() {

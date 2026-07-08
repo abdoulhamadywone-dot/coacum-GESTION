@@ -11,10 +11,8 @@ import AudioRecorder from "@/components/AudioRecorder";
 import WhatsAppMessenger from "@/components/WhatsAppMessenger";
 
 const SUGGESTIONS = [
-  "Qui sont les membres en retard de cotisation ?",
   "Quel est le solde financier de l'association ?",
   "Quels sont les prochains événements ?",
-  "Combien de membres actifs avons-nous ?",
   "Résume les dépenses du mois dernier",
 ];
 
