@@ -59,6 +59,7 @@ const AuthenticatedApp = () => {
           {/* Accessibles à tous les utilisateurs connectés */}
           <Route path="/evenements" element={<Evenements />} />
           <Route path="/articles" element={<Articles />} />
+          <Route path="/assistant" element={<Assistant />} />
 
           {/* Réservé aux admins */}
           <Route element={<AdminRoute />}>
@@ -70,7 +71,6 @@ const AuthenticatedApp = () => {
             <Route path="/bilan" element={<Bilan />} />
             <Route path="/articles-admin" element={<ArticlesAdmin />} />
             <Route path="/administration" element={<Administration />} />
-            <Route path="/assistant" element={<Assistant />} />
           </Route>
         </Route>
       </Route>

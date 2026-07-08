@@ -15,6 +15,7 @@ const allNavItems = [
   { path: "/depenses", label: "Dépenses", icon: Receipt, adminOnly: true },
   { path: "/evenements", label: "Événements", icon: Calendar, adminOnly: false },
   { path: "/articles", label: "Actualités", icon: Newspaper, adminOnly: false },
+  { path: "/assistant", label: "Assistant COACUM", icon: MessageCircle, adminOnly: false },
   { path: "/bilan", label: "Bilan Comptable", icon: Scale, adminOnly: true },
 ];
 
