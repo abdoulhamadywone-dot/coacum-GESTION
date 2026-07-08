@@ -90,7 +90,9 @@ export default function AdminChatBubble() {
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
+      const mimeType = MediaRecorder.isTypeSupported("audio/mp4") ? "audio/mp4" : "audio/webm";
+      const ext = mimeType === "audio/mp4" ? "m4a" : "webm";
+      const recorder = new MediaRecorder(stream, { mimeType, audioBitsPerSecond: 48000 });
       chunksRef.current = [];
 
       recorder.ondataavailable = (e) => {
@@ -99,9 +101,9 @@ export default function AdminChatBubble() {
 
       recorder.onstop = async () => {
         stream.getTracks().forEach((t) => t.stop());
-        const audioBlob = new Blob(chunksRef.current, { type: "audio/webm" });
+        const audioBlob = new Blob(chunksRef.current, { type: mimeType });
         if (audioBlob.size < 1000) return; // too short, ignore
-        const audioFile = new File([audioBlob], "message_vocal.webm", { type: "audio/webm" });
+        const audioFile = new File([audioBlob], `message_vocal.${ext}`, { type: mimeType });
         setAudioProcessing(true);
         try {
           const { file_url } = await base44.integrations.Core.UploadFile({ file: audioFile });
@@ -118,7 +120,7 @@ export default function AdminChatBubble() {
         }
       };
 
-      recorder.start();
+      recorder.start(500); // collect chunks every 500ms during recording
       mediaRecorderRef.current = recorder;
       setIsRecording(true);
       setRecordingTime(0);
@@ -350,6 +352,7 @@ function AudioPlayer({ url, isMe }) {
         <audio
           ref={audioRef}
           src={url}
+          preload="auto"
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}
           onEnded={() => setPlaying(false)}
