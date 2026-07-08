@@ -32,13 +32,14 @@ export default function Administration() {
   const bottomRef = useRef(null);
 
   // Fetch all data
-  const { data: users = [], refetch } = useQuery({ queryKey: ["users-admin"], queryFn: () => base44.entities.User.list(), enabled: isAdmin });
-  const { data: membres = [] } = useQuery({ queryKey: ["membres"], queryFn: () => base44.entities.Membre.list(), enabled: isAdmin });
-  const { data: cotisations = [] } = useQuery({ queryKey: ["cotisations"], queryFn: () => base44.entities.Cotisation.list(), enabled: isAdmin });
-  const { data: depenses = [] } = useQuery({ queryKey: ["depenses"], queryFn: () => base44.entities.Depense.list(), enabled: isAdmin });
-  const { data: evenements = [] } = useQuery({ queryKey: ["evenements"], queryFn: () => base44.entities.Evenement.list(), enabled: isAdmin });
-  const { data: articles = [] } = useQuery({ queryKey: ["articles"], queryFn: () => base44.entities.Article.list(), enabled: isAdmin });
-  const { data: participations = [] } = useQuery({ queryKey: ["participations"], queryFn: () => base44.entities.Participation.list(), enabled: isAdmin });
+  const { data: users = [], refetch, isPending: uP } = useQuery({ queryKey: ["users-admin"], queryFn: () => base44.entities.User.list(), enabled: isAdmin });
+  const { data: membres = [], isPending: mP } = useQuery({ queryKey: ["membres"], queryFn: () => base44.entities.Membre.list(), enabled: isAdmin });
+  const { data: cotisations = [], isPending: cP } = useQuery({ queryKey: ["cotisations"], queryFn: () => base44.entities.Cotisation.list(), enabled: isAdmin });
+  const { data: depenses = [], isPending: dP } = useQuery({ queryKey: ["depenses"], queryFn: () => base44.entities.Depense.list(), enabled: isAdmin });
+  const { data: evenements = [], isPending: eP } = useQuery({ queryKey: ["evenements"], queryFn: () => base44.entities.Evenement.list(), enabled: isAdmin });
+  const { data: articles = [], isPending: aP } = useQuery({ queryKey: ["articles"], queryFn: () => base44.entities.Article.list(), enabled: isAdmin });
+  const { data: participations = [], isPending: pP } = useQuery({ queryKey: ["participations"], queryFn: () => base44.entities.Participation.list(), enabled: isAdmin });
+  const dataLoading = uP || mP || cP || dP || eP || aP || pP;
 
   // Lazy init agent chat — only when admin opens the chat section
   useEffect(() => {
@@ -185,6 +186,17 @@ export default function Administration() {
     { label: "Articles", value: articles.length, active: articlesPublies, icon: Newspaper, color: "from-emerald-500 to-teal-600", href: "/articles-admin" },
     { label: "Cotisations", value: cotisations.length, active: totalCotisations, icon: Wallet, color: "from-violet-500 to-purple-600", href: "/cotisations" },
   ];
+
+  if (dataLoading && users.length === 0) {
+    return (
+      <div className="p-4 md:p-8 max-w-7xl mx-auto">
+        <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-muted-foreground">Chargement des données...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
