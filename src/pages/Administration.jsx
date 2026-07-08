@@ -8,7 +8,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { Navigate } from "react-router-dom";
 import {
-  UserPlus, Shield, Users, Lock, TrendingUp, Calendar, Newspaper, Wallet,
+  UserPlus, Shield, ShieldOff, Users, Lock, TrendingUp, Calendar, Newspaper, Wallet,
   Bot, Sparkles, Send, RefreshCw, Activity, FileText, Layers, ArrowUpRight,
   MessageCircle, Brain, Target, Database, BarChart3
 } from "lucide-react";
@@ -28,6 +28,7 @@ export default function Administration() {
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInitError, setChatInitError] = useState(null);
   const [chatReady, setChatReady] = useState(false);
+  const [roleLoading, setRoleLoading] = useState(null);
   const bottomRef = useRef(null);
 
   // Fetch all data
@@ -107,6 +108,24 @@ export default function Administration() {
       </div>
     );
   }
+
+  const toggleRole = async (u) => {
+    if (u.id === user?.id) {
+      toast.error("Vous ne pouvez pas modifier votre propre rôle");
+      return;
+    }
+    setRoleLoading(u.id);
+    const newRole = u.role === "admin" ? "user" : "admin";
+    try {
+      await base44.entities.User.update(u.id, { role: newRole });
+      toast.success(`${u.full_name || u.email} est maintenant ${newRole === "admin" ? "administrateur" : "membre"}`);
+      refetch();
+    } catch (err) {
+      toast.error(err.message || "Erreur lors du changement de rôle");
+    } finally {
+      setRoleLoading(null);
+    }
+  };
 
   const handleInvite = async (e) => {
     e.preventDefault();
@@ -281,9 +300,26 @@ export default function Administration() {
                       <p className="text-xs text-muted-foreground truncate">{u.email}</p>
                     </div>
                   </div>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold flex-shrink-0 ml-2 ${u.role === "admin" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
-                    {u.role === "admin" ? "Admin" : "Membre"}
-                  </span>
+                  <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${u.role === "admin" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+                      {u.role === "admin" ? "Admin" : "Membre"}
+                    </span>
+                    {u.id !== user?.id && (
+                      <Button
+                        size="sm"
+                        variant={u.role === "admin" ? "outline" : "default"}
+                        disabled={roleLoading === u.id}
+                        onClick={() => toggleRole(u)}
+                        className="h-7 px-2 text-[10px] gap-1"
+                      >
+                        {roleLoading === u.id ? "..." : u.role === "admin" ? (
+                          <><ShieldOff className="h-3 w-3" /> Rétrograder</>
+                        ) : (
+                          <><Shield className="h-3 w-3" /> Admin</>
+                        )}
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ))
             )}
