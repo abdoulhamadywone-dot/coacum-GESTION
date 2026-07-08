@@ -97,6 +97,7 @@ export default function ArticleCard({ article, isAdmin, featured = false }) {
           <img
             src={article.image_url}
             alt={article.titre}
+            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = LOGO_COACUM; }}
             className={`w-full object-cover transition-transform duration-700 group-hover:scale-110 ${featured ? 'h-56 md:h-full min-h-[280px]' : 'h-48'}`}
           />
         ) : (
