@@ -24,9 +24,10 @@ export default function NotificationsBell() {
   }, []);
 
   const notifications = allNotifs.filter(n =>
-    n.target_role === "all" || (n.target_role === "admin" && isAdmin)
+    (n.target_role === "all" || (n.target_role === "admin" && isAdmin)) &&
+    !n.read_by_ids?.includes(user?.id)
   );
-  const unread = notifications.filter(n => !n.read_by_ids?.includes(user?.id));
+  const unread = notifications;
 
   const markAllRead = async () => {
     const updates = unread.map(n => ({
