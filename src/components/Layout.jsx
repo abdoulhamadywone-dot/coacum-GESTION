@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Wallet, Receipt, Calendar, LogOut, Menu, X, ShieldCheck, Newspaper, Sun, Moon, Bell, CheckCheck, MessageCircle, Settings } from "lucide-react";
+import { LayoutDashboard, Users, Wallet, Receipt, Calendar, LogOut, Menu, X, ShieldCheck, Newspaper, Sun, Moon, Bell, CheckCheck, MessageCircle, Settings, Scale } from "lucide-react";
 import { useState, useCallback } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
@@ -15,6 +15,7 @@ const navItems = [
   { path: "/depenses", label: "Dépenses", icon: Receipt },
   { path: "/evenements", label: "Événements", icon: Calendar },
   { path: "/articles", label: "Actualités", icon: Newspaper },
+  { path: "/bilan", label: "Bilan Comptable", icon: Scale },
 ];
 
 function getDateFr() {
