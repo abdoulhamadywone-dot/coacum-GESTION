@@ -149,7 +149,7 @@ export default function AssistantBubble() {
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <ExportPDF cotisations={cotisations} depenses={depenses} membres={membres} compact />
+              {isAdmin && <ExportPDF cotisations={cotisations} depenses={depenses} membres={membres} compact />}
               <button
                 onClick={resetConversation}
                 className="p-1.5 rounded-lg hover:bg-white/20 text-white transition-colors"
