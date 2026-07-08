@@ -104,12 +104,20 @@ export default function Evenements() {
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Événements</h1>
-          <p className="text-sm text-muted-foreground">{evenements.length} événement{evenements.length !== 1 ? 's' : ''}</p>
+      {/* Hero header */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-secondary to-orange-600 p-6 md:p-8 text-white shadow-lg">
+        <div className="absolute inset-0 bg-black/10" />
+        <div className="relative flex items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <CalendarDays className="h-5 w-5" />
+              <span className="text-xs font-semibold uppercase tracking-wider opacity-90">COACUM</span>
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold leading-tight">Événements</h1>
+            <p className="opacity-90 mt-1 text-sm">{evenements.length} événement{evenements.length !== 1 ? 's' : ''} programmé{evenements.length !== 1 ? 's' : ''}</p>
+          </div>
+          {isAdmin && <Button onClick={openCreate} variant="secondary" className="gap-2 flex-shrink-0 shadow-md"><Plus className="h-4 w-4" /> <span className="hidden sm:inline">Nouvel événement</span></Button>}
         </div>
-        {isAdmin && <Button onClick={openCreate} className="gap-2 amber-glow"><Plus className="h-4 w-4" /> Nouvel événement</Button>}
       </div>
 
       {/* Status filter pills */}
@@ -142,10 +150,21 @@ export default function Evenements() {
             const evtParts = getEventParticipations(evt.id);
             const evtPresent = evtParts.filter(p => p.statut === "présent");
             const isExpanded = attendanceEvent?.id === evt.id;
+            const dateObj = evt.date_debut ? new Date(evt.date_debut) : null;
             return (
-              <div key={evt.id} className={`bg-card rounded-2xl border-2 border-l-4 ${cfg.border} border-border p-5 hover:shadow-lg transition-all duration-200 group`}>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
+              <div key={evt.id} className={`bg-card rounded-2xl border border-border overflow-hidden hover:shadow-xl transition-all duration-300 group`}>
+                <div className={`h-1.5 bg-gradient-to-r ${cfg.gradient}`} />
+                <div className="p-5">
+                <div className="flex items-start gap-4">
+                  {/* Calendar block */}
+                  {dateObj && (
+                    <div className={`flex-shrink-0 w-14 h-16 rounded-xl bg-gradient-to-br ${cfg.gradient} flex flex-col items-center justify-center text-white shadow-md`}>
+                      <span className="text-[10px] font-bold uppercase opacity-90">{dateObj.toLocaleDateString("fr-FR", { month: "short" })}</span>
+                      <span className="text-xl font-bold leading-none">{dateObj.getDate()}</span>
+                      <span className="text-[9px] opacity-80 mt-0.5">{dateObj.toLocaleDateString("fr-FR", { weekday: "short" })}</span>
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2 flex-wrap">
                       <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${cfg.color} ${isEnCours ? 'relative' : ''}`}>
                         {isEnCours && <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-500 rounded-full animate-ping" />}
@@ -230,11 +249,12 @@ export default function Evenements() {
                     </div>
                   </div>
                   {isAdmin && (
-                    <div className="flex gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button onClick={() => openEdit(evt)} className="p-1.5 rounded-lg hover:bg-muted"><Edit2 className="h-3.5 w-3.5 text-muted-foreground" /></button>
                       <button onClick={() => setDeleteId(evt.id)} className="p-1.5 rounded-lg hover:bg-destructive/10"><Trash2 className="h-3.5 w-3.5 text-destructive" /></button>
                     </div>
                   )}
+                </div>
                 </div>
               </div>
             );
