@@ -26,6 +26,19 @@
       "type": "string",
       "title": "Auteur"
     },
+    "categorie": {
+      "type": "string",
+      "title": "Cat\u00e9gorie",
+      "enum": [
+        "Annonce",
+        "\u00c9v\u00e9nement",
+        "Activit\u00e9",
+        "Communiqu\u00e9",
+        "Culture",
+        "Membre"
+      ],
+      "default": "Annonce"
+    },
     "statut": {
       "type": "string",
       "title": "Statut",

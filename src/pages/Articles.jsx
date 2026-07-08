@@ -5,10 +5,14 @@ import { Plus, Upload, X, Search, Newspaper } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/AuthContext";
 import ArticleCard from "@/components/ArticleCard";
+import NewsCarousel from "@/components/NewsCarousel";
+
+const CATEGORIES = ["Annonce", "Événement", "Activité", "Communiqué", "Culture", "Membre"];
 
 export default function Articles() {
   const { user } = useAuth();
@@ -16,7 +20,8 @@ export default function Articles() {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [form, setForm] = useState({ titre: "", contenu: "", auteur: "", statut: "publié", date_publication: new Date().toISOString().slice(0,10), image_url: "", document_url: "", document_nom: "" });
+  const [filterCategorie, setFilterCategorie] = useState("all");
+  const [form, setForm] = useState({ titre: "", contenu: "", auteur: "", categorie: "Annonce", statut: "publié", date_publication: new Date().toISOString().slice(0,10), image_url: "", document_url: "", document_nom: "" });
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingDoc, setUploadingDoc] = useState(false);
 
@@ -26,10 +31,12 @@ export default function Articles() {
   });
 
   const filteredArticles = articles.filter(a =>
-    !searchQuery ||
+    (!searchQuery ||
     a.titre?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    a.contenu?.toLowerCase().includes(searchQuery.toLowerCase())
+    a.contenu?.toLowerCase().includes(searchQuery.toLowerCase())) &&
+    (filterCategorie === "all" || a.categorie === filterCategorie)
   );
+  const carouselArticles = articles.filter(a => a.image_url).slice(0, 5);
   const featuredArticle = filteredArticles[0];
   const restArticles = filteredArticles.slice(1);
 
@@ -39,7 +46,7 @@ export default function Articles() {
       queryClient.invalidateQueries({ queryKey: ["articles-publies"] });
       queryClient.invalidateQueries({ queryKey: ["articles"] });
       setDialogOpen(false);
-      setForm({ titre: "", contenu: "", auteur: user?.full_name || "", statut: "publié", date_publication: new Date().toISOString().slice(0,10), image_url: "", document_url: "", document_nom: "" });
+      setForm({ titre: "", contenu: "", auteur: user?.full_name || "", categorie: "Annonce", statut: "publié", date_publication: new Date().toISOString().slice(0,10), image_url: "", document_url: "", document_nom: "" });
       toast.success("Article publié !");
     },
   });
@@ -71,7 +78,7 @@ export default function Articles() {
   };
 
   const openDialog = () => {
-    setForm({ titre: "", contenu: "", auteur: user?.full_name || "", statut: "publié", date_publication: new Date().toISOString().slice(0,10), image_url: "", document_url: "", document_nom: "" });
+    setForm({ titre: "", contenu: "", auteur: user?.full_name || "", categorie: "Annonce", statut: "publié", date_publication: new Date().toISOString().slice(0,10), image_url: "", document_url: "", document_nom: "" });
     setDialogOpen(true);
   };
 
@@ -97,16 +104,36 @@ export default function Articles() {
         </div>
       </div>
 
-      {/* Search */}
+      {/* Carousel */}
+      {carouselArticles.length > 0 && !searchQuery && filterCategorie === "all" && (
+        <NewsCarousel articles={carouselArticles} />
+      )}
+
+      {/* Search + Categories */}
       {articles.length > 0 && (
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Rechercher un article..."
-            className="pl-10 max-w-md"
-          />
+        <div className="space-y-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Rechercher un article..."
+              className="pl-10 max-w-md"
+            />
+          </div>
+          {/* Category pills */}
+          <div className="flex flex-wrap gap-2">
+            <button onClick={() => setFilterCategorie("all")}
+              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all border ${filterCategorie === "all" ? 'bg-primary text-white border-primary' : 'border-border text-muted-foreground hover:bg-muted'}`}>
+              Toutes
+            </button>
+            {CATEGORIES.map(cat => (
+              <button key={cat} onClick={() => setFilterCategorie(cat)}
+                className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all border ${filterCategorie === cat ? 'bg-primary text-white border-primary' : 'border-border text-muted-foreground hover:bg-muted'}`}>
+                {cat}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
@@ -166,6 +193,15 @@ export default function Articles() {
                 <label className="text-sm font-medium">Date de publication</label>
                 <Input type="date" value={form.date_publication} onChange={e => setForm({...form, date_publication: e.target.value})} />
               </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Catégorie</label>
+              <Select value={form.categorie} onValueChange={val => setForm({...form, categorie: val})}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Photo upload */}

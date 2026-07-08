@@ -2,13 +2,14 @@ import { useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Plus, Edit2, Trash2, MapPin, CalendarDays, Clock, Users, UserPlus, UserCheck, UserX, X, MessageCircle, ChevronDown } from "lucide-react";
+import { Plus, Edit2, Trash2, MapPin, CalendarDays, Clock, Users, UserPlus, UserCheck, UserX, X, MessageCircle, ChevronDown, LayoutGrid, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import EventCalendar from "@/components/EventCalendar";
 
 const STATUT_CONFIG = {
   planifié: { label: "Planifié", color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400", border: "border-l-blue-400", gradient: "from-blue-500 to-indigo-600" },
@@ -38,6 +39,7 @@ export default function Evenements() {
   const [attendanceEvent, setAttendanceEvent] = useState(null);
   const [attendanceSearch, setAttendanceSearch] = useState("");
   const [modeEnvoi, setModeEnvoi] = useState(null); // null | 'whatsapp' | 'contact'
+  const [viewMode, setViewMode] = useState("grid"); // 'grid' | 'calendar'
 
   const { data: evenements = [], isLoading } = useQuery({ queryKey: ["evenements"], queryFn: () => base44.entities.Evenement.list() });
   const { data: participations = [] } = useQuery({ queryKey: ["participations"], queryFn: () => base44.entities.Participation.list() });
@@ -120,22 +122,37 @@ export default function Evenements() {
         </div>
       </div>
 
-      {/* Status filter pills */}
-      <div className="flex flex-wrap gap-2">
-        <button onClick={() => setFilterStatut("all")}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-all border ${filterStatut === "all" ? 'bg-primary text-white border-primary' : 'border-border text-muted-foreground hover:bg-muted'}`}>
-          Tous <span className="ml-1 text-xs opacity-70">({evenements.length})</span>
-        </button>
-        {Object.entries(STATUT_CONFIG).map(([k, v]) => statusCounts[k] > 0 && (
-          <button key={k} onClick={() => setFilterStatut(k)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all border ${filterStatut === k ? 'bg-primary text-white border-primary' : 'border-border text-muted-foreground hover:bg-muted'}`}>
-            {v.label} <span className="ml-1 text-xs opacity-70">({statusCounts[k]})</span>
+      {/* Status filter pills + view toggle */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap gap-2">
+          <button onClick={() => setFilterStatut("all")}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all border ${filterStatut === "all" ? 'bg-primary text-white border-primary' : 'border-border text-muted-foreground hover:bg-muted'}`}>
+            Tous <span className="ml-1 text-xs opacity-70">({evenements.length})</span>
           </button>
-        ))}
+          {Object.entries(STATUT_CONFIG).map(([k, v]) => statusCounts[k] > 0 && (
+            <button key={k} onClick={() => setFilterStatut(k)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all border ${filterStatut === k ? 'bg-primary text-white border-primary' : 'border-border text-muted-foreground hover:bg-muted'}`}>
+              {v.label} <span className="ml-1 text-xs opacity-70">({statusCounts[k]})</span>
+            </button>
+          ))}
+        </div>
+        {/* View mode toggle */}
+        <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-0.5">
+          <button onClick={() => setViewMode("grid")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${viewMode === "grid" ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+            <LayoutGrid className="h-3.5 w-3.5" /> Cartes
+          </button>
+          <button onClick={() => setViewMode("calendar")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${viewMode === "calendar" ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+            <Calendar className="h-3.5 w-3.5" /> Calendrier
+          </button>
+        </div>
       </div>
 
       {isLoading ? (
         <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
+      ) : viewMode === "calendar" ? (
+        <EventCalendar events={filtered} onEventClick={(evt) => openEdit(evt)} />
       ) : filtered.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
           <CalendarDays className="h-12 w-12 mx-auto mb-3 opacity-20" />

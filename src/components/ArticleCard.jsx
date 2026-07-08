@@ -98,7 +98,12 @@ export default function ArticleCard({ article, isAdmin, featured = false }) {
       {/* Content */}
       <div className={`flex flex-col p-5 ${featured ? 'md:w-1/2 md:justify-center' : ''}`}>
         {/* Meta */}
-        <div className="flex items-center gap-3 text-[11px] text-muted-foreground mb-2">
+        <div className="flex items-center gap-2 text-[11px] text-muted-foreground mb-2 flex-wrap">
+          {article.categorie && (
+            <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold">
+              {article.categorie}
+            </span>
+          )}
           {article.date_publication && (
             <span className="flex items-center gap-1">
               <Calendar className="h-3 w-3" />
