@@ -13,6 +13,10 @@
     "auteur_id": {
       "type": "string",
       "title": "ID de l'auteur"
+    },
+    "audio_url": {
+      "type": "string",
+      "title": "Audio"
     }
   },
   "required": [
