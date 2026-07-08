@@ -39,8 +39,8 @@ export default function Layout() {
     catch { return new Set(); }
   });
 
-  const { data: membres = [] } = useQuery({ queryKey: ["membres"], queryFn: () => base44.entities.Membre.list() });
-  const { data: cotisations = [] } = useQuery({ queryKey: ["cotisations"], queryFn: () => base44.entities.Cotisation.list() });
+  const { data: membres = [] } = useQuery({ queryKey: ["membres"], queryFn: () => base44.entities.Membre.list(), enabled: isAdmin });
+  const { data: cotisations = [] } = useQuery({ queryKey: ["cotisations"], queryFn: () => base44.entities.Cotisation.list(), enabled: isAdmin });
 
   // Compute late members
   const recentCols = [...new Set(cotisations.map(c => {

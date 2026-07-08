@@ -161,9 +161,9 @@ export default function Assistant() {
 
   const isThinking = sending || messages[messages.length - 1]?.role === "user";
 
-  const { data: cotisations = [] } = useQuery({ queryKey: ["cotisations"], queryFn: () => base44.entities.Cotisation.list() });
-  const { data: depenses = [] } = useQuery({ queryKey: ["depenses"], queryFn: () => base44.entities.Depense.list() });
-  const { data: membres = [] } = useQuery({ queryKey: ["membres"], queryFn: () => base44.entities.Membre.list() });
+  const { data: cotisations = [] } = useQuery({ queryKey: ["cotisations"], queryFn: () => base44.entities.Cotisation.list(), enabled: isAdmin });
+  const { data: depenses = [] } = useQuery({ queryKey: ["depenses"], queryFn: () => base44.entities.Depense.list(), enabled: isAdmin });
+  const { data: membres = [] } = useQuery({ queryKey: ["membres"], queryFn: () => base44.entities.Membre.list(), enabled: isAdmin });
 
   return (
     <div className={isFullscreen ? 'fixed inset-0 z-[60] bg-background flex flex-col' : 'flex flex-col h-full max-h-[calc(100vh-4rem)] md:max-h-screen'}>

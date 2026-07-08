@@ -41,7 +41,7 @@ export default function Evenements() {
 
   const { data: evenements = [], isLoading } = useQuery({ queryKey: ["evenements"], queryFn: () => base44.entities.Evenement.list() });
   const { data: participations = [] } = useQuery({ queryKey: ["participations"], queryFn: () => base44.entities.Participation.list() });
-  const { data: membres = [] } = useQuery({ queryKey: ["membres"], queryFn: () => base44.entities.Membre.list() });
+  const { data: membres = [] } = useQuery({ queryKey: ["membres"], queryFn: () => base44.entities.Membre.list(), enabled: isAdmin });
 
   const createEvt = useMutation({ mutationFn: (d) => base44.entities.Evenement.create(d), onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["evenements"] }); setDialogOpen(false); toast.success("Événement créé"); } });
   const updateEvt = useMutation({ mutationFn: ({ id, data }) => base44.entities.Evenement.update(id, data), onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["evenements"] }); setDialogOpen(false); setEditing(null); toast.success("Événement modifié"); } });
