@@ -35,12 +35,7 @@ export default function Assistant() {
       try {
         const conv = await base44.agents.createConversation({
           agent_name: "coacum_assistant",
-          metadata: { name: `Session de ${user.full_name || "Membre"}` },
-        });
-        // Inject system context with user role (invisible to user)
-        await base44.agents.addMessage(conv, {
-          role: "user",
-          content: `[SYSTÈME] Utilisateur connecté : ${user.full_name || "Inconnu"} — Rôle : ${user.role || "user"}. Applique les règles de sécurité correspondantes.`,
+          metadata: { name: `Session de ${user.full_name || "Membre"}`, user_role: user.role || "user", user_name: user.full_name || "Inconnu" },
         });
         setConversation(conv);
       } catch (err) {
@@ -81,11 +76,7 @@ export default function Assistant() {
     try {
       const conv = await base44.agents.createConversation({
         agent_name: "coacum_assistant",
-        metadata: { name: `Session de ${user?.full_name || "Membre"}` },
-      });
-      await base44.agents.addMessage(conv, {
-        role: "user",
-        content: `[SYSTÈME] Utilisateur connecté : ${user?.full_name || "Inconnu"} — Rôle : ${user?.role || "user"}. Applique les règles de sécurité correspondantes.`,
+        metadata: { name: `Session de ${user?.full_name || "Membre"}`, user_role: user?.role || "user", user_name: user?.full_name || "Inconnu" },
       });
       setConversation(conv);
       setMessages([]);
