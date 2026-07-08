@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/AuthContext";
 import { toast } from "sonner";
 
+const LOGO_COACUM = "https://media.base44.com/images/public/6a18cbfaee75eb22cc08c34e/ef4d78394_logocoacum.jpg";
+
 function formatDateFr(dateStr) {
   if (!dateStr) return "";
   return new Date(dateStr).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
@@ -89,29 +91,37 @@ export default function ArticleCard({ article, isAdmin, featured = false }) {
 
   return (
     <article className={`group relative bg-card rounded-2xl border border-border overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 ${featured ? 'md:flex md:flex-row-reverse' : ''}`}>
-      {/* Image */}
-      {article.image_url && (
-        <div className={`relative overflow-hidden ${featured ? 'md:w-1/2' : ''}`}>
+      {/* Image or Logo */}
+      <div className={`relative overflow-hidden ${featured ? 'md:w-1/2' : ''}`}>
+        {article.image_url ? (
           <img
             src={article.image_url}
             alt={article.titre}
             className={`w-full object-cover transition-transform duration-700 group-hover:scale-110 ${featured ? 'h-56 md:h-full min-h-[280px]' : 'h-48'}`}
           />
-          {/* Gradient overlay on hover */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          {featured && (
-            <span className="absolute top-3 left-3 bg-gradient-to-r from-primary to-secondary text-primary-foreground text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
-              <span className="text-xs">★</span> À LA UNE
-            </span>
-          )}
-          {/* Category badge on image for non-featured */}
-          {!featured && article.categorie && (
-            <span className={`absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold backdrop-blur-md shadow-md ${catStyle}`}>
-              {article.categorie}
-            </span>
-          )}
-        </div>
-      )}
+        ) : (
+          <div className={`flex items-center justify-center bg-gradient-to-br from-primary/10 via-secondary/10 to-orange-100 dark:from-primary/10 dark:via-secondary/10 dark:to-card ${featured ? 'h-56 md:h-full min-h-[280px]' : 'h-48'}`}>
+            <img
+              src={LOGO_COACUM}
+              alt="Logo COACUM"
+              className={`object-contain transition-transform duration-700 group-hover:scale-110 ${featured ? 'w-40 h-40' : 'w-28 h-28'}`}
+            />
+          </div>
+        )}
+        {/* Gradient overlay on hover */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        {featured && (
+          <span className="absolute top-3 left-3 bg-gradient-to-r from-primary to-secondary text-primary-foreground text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
+            <span className="text-xs">★</span> À LA UNE
+          </span>
+        )}
+        {/* Category badge on image for non-featured */}
+        {!featured && article.categorie && (
+          <span className={`absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold backdrop-blur-md shadow-md ${catStyle}`}>
+            {article.categorie}
+          </span>
+        )}
+      </div>
 
       {/* Content */}
       <div className={`flex flex-col p-5 ${featured ? 'md:w-1/2 md:justify-center' : ''}`}>
