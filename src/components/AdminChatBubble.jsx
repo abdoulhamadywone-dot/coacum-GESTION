@@ -423,6 +423,15 @@ function MessageRow({ msg, isMe, avatarColor, formatTime, onDelete }) {
           <Trash2 className="h-3 w-3" />
         </button>
       )}
+      {!isMe && showDelete && (
+        <button
+          onClick={onDelete}
+          className="w-6 h-6 rounded-full bg-muted hover:bg-destructive/10 text-muted-foreground hover:text-destructive flex items-center justify-center transition-colors flex-shrink-0"
+          title="Supprimer"
+        >
+          <Trash2 className="h-3 w-3" />
+        </button>
+      )}
     </div>
   );
 }
