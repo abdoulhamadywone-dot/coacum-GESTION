@@ -23,6 +23,7 @@ import Administration from './pages/Administration';
 import Assistant from './pages/Assistant';
 import MembreProfil from './pages/MembreProfil';
 import Bilan from './pages/Bilan';
+import AdminRoute from '@/components/AdminRoute';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -55,17 +56,22 @@ const AuthenticatedApp = () => {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         <Route element={<Layout />}>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/membres" element={<Membres />} />
-          <Route path="/cotisations" element={<Cotisations />} />
-          <Route path="/depenses" element={<Depenses />} />
+          {/* Accessibles à tous les utilisateurs connectés */}
           <Route path="/evenements" element={<Evenements />} />
           <Route path="/articles" element={<Articles />} />
-          <Route path="/articles-admin" element={<ArticlesAdmin />} />
-          <Route path="/administration" element={<Administration />} />
-          <Route path="/assistant" element={<Assistant />} />
-          <Route path="/membres/:id" element={<MembreProfil />} />
-          <Route path="/bilan" element={<Bilan />} />
+
+          {/* Réservé aux admins */}
+          <Route element={<AdminRoute />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/membres" element={<Membres />} />
+            <Route path="/membres/:id" element={<MembreProfil />} />
+            <Route path="/cotisations" element={<Cotisations />} />
+            <Route path="/depenses" element={<Depenses />} />
+            <Route path="/bilan" element={<Bilan />} />
+            <Route path="/articles-admin" element={<ArticlesAdmin />} />
+            <Route path="/administration" element={<Administration />} />
+            <Route path="/assistant" element={<Assistant />} />
+          </Route>
         </Route>
       </Route>
       <Route path="*" element={<PageNotFound />} />

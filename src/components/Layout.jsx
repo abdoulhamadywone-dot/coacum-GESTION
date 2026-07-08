@@ -8,14 +8,14 @@ import useDarkMode from "../hooks/useDarkMode";
 import AssistantBubble from "@/components/AssistantBubble";
 import OfflineIndicator from "@/components/OfflineIndicator";
 
-const navItems = [
-  { path: "/", label: "Tableau de bord", icon: LayoutDashboard },
-  { path: "/membres", label: "Membres", icon: Users },
-  { path: "/cotisations", label: "Cotisations", icon: Wallet },
-  { path: "/depenses", label: "Dépenses", icon: Receipt },
-  { path: "/evenements", label: "Événements", icon: Calendar },
-  { path: "/articles", label: "Actualités", icon: Newspaper },
-  { path: "/bilan", label: "Bilan Comptable", icon: Scale },
+const allNavItems = [
+  { path: "/", label: "Tableau de bord", icon: LayoutDashboard, adminOnly: true },
+  { path: "/membres", label: "Membres", icon: Users, adminOnly: true },
+  { path: "/cotisations", label: "Cotisations", icon: Wallet, adminOnly: true },
+  { path: "/depenses", label: "Dépenses", icon: Receipt, adminOnly: true },
+  { path: "/evenements", label: "Événements", icon: Calendar, adminOnly: false },
+  { path: "/articles", label: "Actualités", icon: Newspaper, adminOnly: false },
+  { path: "/bilan", label: "Bilan Comptable", icon: Scale, adminOnly: true },
 ];
 
 function getDateFr() {
@@ -30,6 +30,7 @@ export default function Layout() {
   const [showNotif, setShowNotif] = useState(false);
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
+  const navItems = allNavItems.filter(item => isAdmin || !item.adminOnly);
   const [dark, setDark] = useDarkMode();
 
   const [dismissedIds, setDismissedIds] = useState(() => {
