@@ -124,6 +124,24 @@
   }
 }
 
+/* Smooth scrolling and touch optimization */
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+/* Prevent horizontal overflow on small screens */
+@media (max-width: 640px) {
+  img {
+    max-width: 100%;
+  }
+}
+
 @media print {
   .no-print { display: none !important; }
   body { background: white !important; background-image: none !important; }

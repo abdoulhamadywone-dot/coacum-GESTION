@@ -49,7 +49,7 @@ export default function EventCalendar({ events = [], onEventClick }) {
   const isCurrentMonth = monthOffset === 0;
 
   return (
-    <div className="bg-card rounded-2xl border border-border p-4 md:p-5">
+    <div className="bg-card rounded-2xl border border-border p-3 sm:p-4 md:p-5">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-bold text-foreground text-lg">
@@ -102,7 +102,7 @@ export default function EventCalendar({ events = [], onEventClick }) {
                     onClick={() => onEventClick?.(e)}
                     className="text-left">
                     <span className={`block w-1.5 h-1.5 rounded-full ${STATUT_COLORS[e.statut] || 'bg-gray-400'} flex-shrink-0`} />
-                    <span className="block text-[9px] text-foreground truncate leading-tight hidden md:block">{e.titre}</span>
+                    <span className="block text-[8px] sm:text-[9px] text-foreground truncate leading-tight">{e.titre}</span>
                   </button>
                 ))}
                 {dayEvents.length > 2 && (

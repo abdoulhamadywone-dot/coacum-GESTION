@@ -107,7 +107,7 @@ export default function AssistantBubble() {
       {!open && (
         <button
           onClick={openChat}
-          className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 shadow-2xl flex items-center justify-center hover:scale-110 transition-all duration-200 amber-glow"
+          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 shadow-2xl flex items-center justify-center hover:scale-110 transition-all duration-200 amber-glow"
           aria-label="Ouvrir l'assistant"
         >
           <Bot className="h-6 w-6 text-white" />
@@ -121,7 +121,7 @@ export default function AssistantBubble() {
 
       {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-6 right-6 z-50 w-[370px] max-w-[calc(100vw-2rem)] h-[560px] max-h-[calc(100vh-5rem)] flex flex-col rounded-2xl shadow-2xl border border-border bg-background overflow-hidden animate-in fade-in-0 slide-in-from-bottom-4 duration-300">
+        <div className="fixed inset-0 sm:bottom-6 sm:right-6 sm:inset-auto z-50 w-full sm:w-[370px] sm:max-w-[calc(100vw-2rem)] h-full sm:h-[560px] sm:max-h-[calc(100vh-5rem)] flex flex-col sm:rounded-2xl shadow-2xl border border-border bg-background overflow-hidden animate-in fade-in-0 slide-in-from-bottom-4 duration-300">
 
           {/* Header */}
           <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 bg-gradient-to-r from-amber-500 to-orange-600">

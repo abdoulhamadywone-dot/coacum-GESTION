@@ -90,7 +90,7 @@ export default function ArticleCard({ article, isAdmin, featured = false }) {
   const catStyle = CATEGORY_STYLES[article.categorie] || "bg-primary/10 text-primary";
 
   return (
-    <article className={`group relative bg-card rounded-2xl border border-border overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 ${featured ? 'md:flex md:flex-row-reverse' : ''}`}>
+    <article className={`group relative bg-card rounded-2xl border border-border overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 ${featured ? 'md:flex md:flex-row-reverse' : ''} ${featured ? 'sm:break-inside-avoid' : ''}`}>
       {/* Image or Logo */}
       <div className={`relative overflow-hidden ${featured ? 'md:w-1/2' : ''}`}>
         {article.image_url ? (

@@ -83,21 +83,21 @@ export default function Articles() {
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6">
+    <div className="p-3 sm:p-4 md:p-8 max-w-5xl mx-auto space-y-4 sm:space-y-6">
       {/* Hero header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-secondary to-orange-600 p-6 md:p-8 text-white shadow-lg">
+      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-primary via-secondary to-orange-600 p-5 sm:p-6 md:p-8 text-white shadow-lg">
         <div className="absolute inset-0 bg-black/10" />
-        <div className="relative flex items-center justify-between gap-4">
+        <div className="relative flex items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Newspaper className="h-5 w-5" />
-              <span className="text-xs font-semibold uppercase tracking-wider opacity-90">COACUM</span>
+              <Newspaper className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider opacity-90">COACUM</span>
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold leading-tight">Actualités</h1>
-            <p className="opacity-90 mt-1 text-sm">Restez informé des dernières nouvelles de l'association</p>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight">Actualités</h1>
+            <p className="opacity-90 mt-1 text-xs sm:text-sm">Restez informé des dernières nouvelles de l'association</p>
           </div>
           {isAdmin && (
-            <Button onClick={openDialog} variant="secondary" className="gap-2 flex-shrink-0 shadow-md">
+            <Button onClick={openDialog} variant="secondary" className="gap-2 flex-shrink-0 shadow-md" size="sm">
               <Plus className="h-4 w-4" /> <span className="hidden sm:inline">Nouvel article</span>
             </Button>
           )}
@@ -124,12 +124,12 @@ export default function Articles() {
           {/* Category pills */}
           <div className="flex flex-wrap gap-2">
             <button onClick={() => setFilterCategorie("all")}
-              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all border ${filterCategorie === "all" ? 'bg-primary text-white border-primary shadow-md scale-105' : 'border-border text-muted-foreground hover:bg-muted hover:scale-105'}`}>
+              className={`px-3 sm:px-4 py-1.5 rounded-full text-xs font-medium transition-all border ${filterCategorie === "all" ? 'bg-primary text-white border-primary shadow-md scale-105' : 'border-border text-muted-foreground hover:bg-muted hover:scale-105'}`}>
               Toutes
             </button>
             {CATEGORIES.map(cat => (
               <button key={cat} onClick={() => setFilterCategorie(cat)}
-                className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all border ${filterCategorie === cat ? 'bg-primary text-white border-primary shadow-md scale-105' : 'border-border text-muted-foreground hover:bg-muted hover:scale-105'}`}>
+                className={`px-3 sm:px-4 py-1.5 rounded-full text-xs font-medium transition-all border ${filterCategorie === cat ? 'bg-primary text-white border-primary shadow-md scale-105' : 'border-border text-muted-foreground hover:bg-muted hover:scale-105'}`}>
                 {cat}
               </button>
             ))}
@@ -163,7 +163,7 @@ export default function Articles() {
           )}
 
           {/* Grid of remaining articles */}
-          <div className={`grid gap-6 ${featuredArticle && !searchQuery ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
+          <div className={`grid gap-4 sm:gap-6 ${featuredArticle && !searchQuery ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
             {(searchQuery ? filteredArticles : restArticles).map(a => (
               <ArticleCard key={a.id} article={a} isAdmin={isAdmin} />
             ))}

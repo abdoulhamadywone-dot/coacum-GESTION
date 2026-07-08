@@ -105,20 +105,20 @@ export default function Evenements() {
     : [];
 
   return (
-    <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
+    <div className="p-3 sm:p-4 md:p-8 max-w-6xl mx-auto space-y-4 sm:space-y-6">
       {/* Hero header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-secondary to-orange-600 p-6 md:p-8 text-white shadow-lg">
+      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-primary via-secondary to-orange-600 p-5 sm:p-6 md:p-8 text-white shadow-lg">
         <div className="absolute inset-0 bg-black/10" />
-        <div className="relative flex items-center justify-between gap-4">
+        <div className="relative flex items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <CalendarDays className="h-5 w-5" />
-              <span className="text-xs font-semibold uppercase tracking-wider opacity-90">COACUM</span>
+              <CalendarDays className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider opacity-90">COACUM</span>
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold leading-tight">Événements</h1>
-            <p className="opacity-90 mt-1 text-sm">{evenements.length} événement{evenements.length !== 1 ? 's' : ''} programmé{evenements.length !== 1 ? 's' : ''}</p>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight">Événements</h1>
+            <p className="opacity-90 mt-1 text-xs sm:text-sm">{evenements.length} événement{evenements.length !== 1 ? 's' : ''} programmé{evenements.length !== 1 ? 's' : ''}</p>
           </div>
-          {isAdmin && <Button onClick={openCreate} variant="secondary" className="gap-2 flex-shrink-0 shadow-md"><Plus className="h-4 w-4" /> <span className="hidden sm:inline">Nouvel événement</span></Button>}
+          {isAdmin && <Button onClick={openCreate} variant="secondary" size="sm" className="gap-2 flex-shrink-0 shadow-md"><Plus className="h-4 w-4" /> <span className="hidden sm:inline">Nouvel</span></Button>}
         </div>
       </div>
 
@@ -159,7 +159,7 @@ export default function Evenements() {
           <p className="text-lg font-medium">Aucun événement</p>
         </div>
       ) : (
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid sm:grid-cols-1 md:grid-cols-2 gap-4">
           {filtered.map((evt) => {
             const cfg = STATUT_CONFIG[evt.statut] || STATUT_CONFIG.planifié;
             const countdown = evt.statut === 'planifié' ? getCountdown(evt.date_debut) : null;

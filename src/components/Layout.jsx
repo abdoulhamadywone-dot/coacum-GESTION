@@ -247,40 +247,64 @@ export default function Layout() {
           </div>
         </header>
 
+        {/* Mobile slide-in drawer */}
         {mobileOpen && (
-          <div className="md:hidden bg-card border-b border-border p-3 space-y-1 no-print">
-            {navItems.map(item => (
-              <Link key={item.path} to={item.path} onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium ${
-                  location.pathname === item.path ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
-                }`}
-              >
-                <item.icon className="h-4 w-4" />{item.label}
-              </Link>
-            ))}
-            {isAdmin && (
-              <Link to="/articles-admin" onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium ${
-                  location.pathname === '/articles-admin' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'
-                }`}
-              >
-                <ShieldCheck className="h-4 w-4" />Admin Articles
-              </Link>
-            )}
-            {isAdmin && (
-              <Link to="/administration" onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium ${
-                  location.pathname === '/administration' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'
-                }`}
-              >
-                <Settings className="h-4 w-4" />Administration
-              </Link>
-            )}
-            <button onClick={() => base44.auth.logout()}
-              className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 w-full">
-              <LogOut className="h-4 w-4" />Déconnexion
-            </button>
-          </div>
+          <>
+            <div className="md:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm no-print animate-in fade-in-0 duration-200" onClick={() => setMobileOpen(false)} />
+            <div className="md:hidden fixed top-0 right-0 bottom-0 z-50 w-72 max-w-[80vw] bg-card border-l border-border shadow-2xl no-print flex flex-col animate-in slide-in-from-right duration-300">
+              <div className="flex items-center justify-between px-4 py-4 border-b border-border">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-sm">C</div>
+                  <span className="font-bold gradient-text text-sm">COACUM</span>
+                </div>
+                <button onClick={() => setMobileOpen(false)} className="p-2 rounded-lg hover:bg-muted">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+                {navItems.map(item => (
+                  <Link key={item.path} to={item.path} onClick={() => setMobileOpen(false)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                      location.pathname === item.path ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
+                    }`}
+                  >
+                    <item.icon className="h-4 w-4 flex-shrink-0" />{item.label}
+                  </Link>
+                ))}
+                {isAdmin && (
+                  <Link to="/articles-admin" onClick={() => setMobileOpen(false)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                      location.pathname === '/articles-admin' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'
+                    }`}
+                  >
+                    <ShieldCheck className="h-4 w-4 flex-shrink-0" />Admin Articles
+                  </Link>
+                )}
+                {isAdmin && (
+                  <Link to="/administration" onClick={() => setMobileOpen(false)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                      location.pathname === '/administration' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'
+                    }`}
+                  >
+                    <Settings className="h-4 w-4 flex-shrink-0" />Administration
+                  </Link>
+                )}
+              </nav>
+              <div className="p-3 border-t border-border space-y-2">
+                <div className="px-4 py-1 text-[10px] text-muted-foreground capitalize">{getDateFr()}</div>
+                {user && (
+                  <div className="px-4 py-1">
+                    <p className="text-xs font-semibold text-foreground truncate">{user.full_name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                  </div>
+                )}
+                <button onClick={() => base44.auth.logout()}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 w-full transition-colors">
+                  <LogOut className="h-4 w-4" />Déconnexion
+                </button>
+              </div>
+            </div>
+          </>
         )}
 
         <main className="flex-1 overflow-auto">
@@ -297,7 +321,7 @@ export default function Layout() {
         href="https://wa.me/22249161424"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-24 right-6 z-50 w-12 h-12 rounded-full bg-green-500 hover:bg-green-600 shadow-2xl flex items-center justify-center transition-all duration-200 hover:scale-110"
+        className="fixed bottom-20 right-4 sm:bottom-24 sm:right-6 z-50 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-green-500 hover:bg-green-600 shadow-2xl flex items-center justify-center transition-all duration-200 hover:scale-110"
         title="Contacter COACUM sur WhatsApp"
       >
         <MessageCircle className="h-5 w-5 text-white" />
