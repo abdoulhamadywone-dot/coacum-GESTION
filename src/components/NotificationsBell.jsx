@@ -80,7 +80,7 @@ export default function NotificationsBell() {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute top-10 right-0 sm:top-auto sm:bottom-12 sm:left-0 sm:right-auto w-72 bg-card border border-border rounded-2xl shadow-xl z-50 animate-in fade-in-0 slide-in-from-bottom-2 duration-200">
+          <div className="fixed top-14 right-2 left-2 sm:left-auto sm:top-auto sm:bottom-12 sm:left-0 sm:right-auto sm:w-80 bg-card border border-border rounded-2xl shadow-2xl z-[60] animate-in fade-in-0 slide-in-from-bottom-2 duration-200">
             <div className="p-4">
               <div className="flex items-center justify-between border-b border-border pb-2 mb-3">
                 <h4 className="font-bold text-xs text-foreground">Notifications</h4>

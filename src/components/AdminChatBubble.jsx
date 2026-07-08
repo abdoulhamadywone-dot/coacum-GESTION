@@ -105,13 +105,8 @@ export default function AdminChatBubble() {
         setAudioProcessing(true);
         try {
           const { file_url } = await base44.integrations.Core.UploadFile({ file: audioFile });
-          let transcription = "";
-          try {
-            const result = await base44.integrations.Core.TranscribeAudio({ audio_url: file_url });
-            transcription = result?.trim() || "";
-          } catch { /* transcription optional */ }
           sendMutation.mutate({
-            contenu: transcription || "🎵 Message vocal",
+            contenu: "🎵 Message vocal",
             auteur_nom: user?.full_name || user?.email || "Admin",
             auteur_id: user?.id,
             audio_url: file_url,
