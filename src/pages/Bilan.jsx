@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import useAnimatedCounter from "../hooks/useAnimatedCounter";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  AreaChart, Area, Line, LineChart, ReferenceLine, PieChart, Pie, Cell
 } from "recharts";
 import { jsPDF } from "jspdf";
 
@@ -73,6 +74,21 @@ export default function Bilan() {
     monthData[mIdx].depenses += (d.montant || 0);
   });
   const chartData = Object.values(monthData);
+
+  // Trésorerie cumulative (solde mensuel + cumulé)
+  let runningBalance = 0;
+  const tresorerieData = chartData.map(d => {
+    const net = d.recettes - d.depenses;
+    runningBalance += net;
+    return { name: d.name, solde: runningBalance, flux: net };
+  });
+
+  // Proportion recettes vs dépenses (donut)
+  const proportionData = [
+    { name: "Recettes", value: totalRecettes },
+    { name: "Dépenses", value: totalDepenses },
+  ];
+  const proportionColors = ["hsl(142,55%,45%)", "hsl(0,84%,60%)"];
 
   const handleExportPDF = () => {
     const doc = new jsPDF();
@@ -258,6 +274,74 @@ export default function Bilan() {
         ) : (
           <div className="flex items-center justify-center h-32 text-muted-foreground text-sm">Aucune donnée</div>
         )}
+      </div>
+
+      {/* Trésorerie evolution + Proportion */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        {/* Trésorerie cumulative */}
+        <div className="lg:col-span-2 bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-sm">
+          <h3 className="font-semibold text-foreground mb-1 flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-primary" /> Évolution de la trésorerie
+          </h3>
+          <p className="text-xs text-muted-foreground mb-5">Solde cumulé mois par mois (recettes − dépenses)</p>
+          {tresorerieData.some(d => d.solde !== 0 || d.flux !== 0) ? (
+            <ResponsiveContainer width="100%" height={280}>
+              <AreaChart data={tresorerieData}>
+                <defs>
+                  <linearGradient id="gradTresorerie" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(38,95%,48%)" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="hsl(38,95%,48%)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(38,15%,90%)" vertical={false} />
+                <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} />
+                <YAxis fontSize={10} axisLine={false} tickLine={false} />
+                <Tooltip formatter={(v) => `${v.toLocaleString()} MRU`} />
+                <ReferenceLine y={0} stroke="hsl(0,0%,70%)" strokeDasharray="4 4" />
+                <Area type="monotone" dataKey="solde" stroke="hsl(38,95%,48%)" strokeWidth={2.5} fill="url(#gradTresorerie)" name="Trésorerie cumulée" />
+                <Line type="monotone" dataKey="flux" stroke="hsl(25,95%,53%)" strokeWidth={1.5} strokeDasharray="5 3" name="Flux net mensuel" />
+                <Legend iconType="circle" iconSize={8} formatter={(v) => <span className="text-xs text-muted-foreground">{v}</span>} />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-32 text-muted-foreground text-sm">Aucune donnée</div>
+          )}
+        </div>
+
+        {/* Proportion recettes vs dépenses */}
+        <div className="bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-sm">
+          <h3 className="font-semibold text-foreground mb-1">Proportion</h3>
+          <p className="text-xs text-muted-foreground mb-4">Recettes vs Dépenses</p>
+          {totalRecettes > 0 || totalDepenses > 0 ? (
+            <ResponsiveContainer width="100%" height={200}>
+              <PieChart>
+                <Pie data={proportionData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" paddingAngle={3}>
+                  {proportionData.map((_, i) => <Cell key={i} fill={proportionColors[i]} stroke="none" />)}
+                </Pie>
+                <Tooltip formatter={(v) => `${v.toLocaleString()} MRU`} />
+                <Legend iconType="circle" iconSize={8} formatter={(v) => <span className="text-xs text-muted-foreground">{v}</span>} />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-32 text-muted-foreground text-sm">Aucune donnée</div>
+          )}
+          <div className="mt-3 space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="flex items-center gap-1.5 text-muted-foreground"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />Recettes</span>
+              <span className="font-bold text-emerald-600">{totalRecettes.toLocaleString("fr-FR")}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="flex items-center gap-1.5 text-muted-foreground"><span className="w-2.5 h-2.5 rounded-full bg-red-500" />Dépenses</span>
+              <span className="font-bold text-red-500">{totalDepenses.toLocaleString("fr-FR")}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm pt-2 border-t border-border">
+              <span className="font-medium text-foreground">Ratio R/D</span>
+              <span className={`font-bold ${totalDepenses > 0 && totalRecettes / totalDepenses >= 1 ? "text-emerald-600" : "text-red-500"}`}>
+                {totalDepenses > 0 ? (totalRecettes / totalDepenses).toFixed(2) : "—"}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Dépenses par rubrique */}
