@@ -196,12 +196,14 @@ export default function Assistant() {
           </div>
         </div>
         <div className="flex items-center gap-1.5">
-          <ExportPDF cotisations={cotisations} depenses={depenses} membres={membres} />
+          {isAdmin && <ExportPDF cotisations={cotisations} depenses={depenses} membres={membres} />}
           {activeTab === "chat" && (
             <>
-              <Button variant="ghost" size="sm" onClick={exportConversation} disabled={messages.filter(m => m.role !== "user" || !m.content?.startsWith("[SYSTÈME]")).length === 0} className="gap-1.5 text-xs" title="Exporter la conversation">
-                <Download className="h-3.5 w-3.5" /> PDF
-              </Button>
+              {isAdmin && (
+                <Button variant="ghost" size="sm" onClick={exportConversation} disabled={messages.filter(m => m.role !== "user" || !m.content?.startsWith("[SYSTÈME]")).length === 0} className="gap-1.5 text-xs" title="Exporter la conversation">
+                  <Download className="h-3.5 w-3.5" /> PDF
+                </Button>
+              )}
               <Button variant="ghost" size="sm" onClick={resetConversation} className="gap-1.5 text-xs">
                 <RefreshCw className="h-3.5 w-3.5" /> Nouvelle session
               </Button>
