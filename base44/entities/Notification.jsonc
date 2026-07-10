@@ -53,8 +53,30 @@
         "role": "admin"
       }
     },
-    "read": null,
-    "update": null,
+    "read": {
+      "$or": [
+        {
+          "data.target_role": "all"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        }
+      ]
+    },
     "delete": {
       "user_condition": {
         "role": "admin"
