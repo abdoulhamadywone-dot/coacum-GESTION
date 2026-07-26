@@ -36,6 +36,37 @@ export default async function(req: Request): Promise<Response> {
       return Response.json({ success: true, profils });
     }
 
+    // --- GET FULL PROFIL (public, for network page) ---
+    if (action === "get_profil") {
+      const { membre_id } = body;
+      if (!membre_id) {
+        return Response.json({ error: "ID membre manquant" }, { status: 400 });
+      }
+      const membre = await base44.asServiceRole.entities.Membre.get(membre_id);
+      if (!membre || membre.statut !== "actif") {
+        return Response.json({ error: "Membre introuvable" }, { status: 404 });
+      }
+      const publications = await base44.asServiceRole.entities.Publication.filter(
+        { membre_id },
+        "-created_date",
+        100
+      );
+      return Response.json({
+        success: true,
+        profil: {
+          id: membre.id,
+          nom: membre.nom,
+          nom_utilisateur: membre.nom_utilisateur,
+          photo_profil: membre.photo_profil,
+          photo_couverture: membre.photo_couverture,
+          statut_perso: membre.statut_perso,
+          description: membre.description,
+          date_adhesion: membre.date_adhesion,
+        },
+        publications,
+      });
+    }
+
     // --- VALIDATE MEMBER FOR ALL OTHER ACTIONS ---
     const { membre_id, mot_de_passe } = body;
     if (!membre_id || !mot_de_passe) {

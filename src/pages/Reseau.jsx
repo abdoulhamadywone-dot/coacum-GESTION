@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Loader2, Images, FileText, Users, Grid3x3, LogIn } from "lucide-react";
 import { Link } from "react-router-dom";
 import { membreAuth } from "@/lib/membreAuth";
+import MembreProfilDialog from "@/components/MembreProfilDialog";
 
 const AVATAR_COLORS = [
   "from-amber-400 to-orange-500",
@@ -26,6 +27,7 @@ function getAvatarColor(nom = "") {
 export default function Reseau() {
   const [filter, setFilter] = useState("tout");
   const [view, setView] = useState("feed");
+  const [selectedMembre, setSelectedMembre] = useState(null);
 
   const { data: publications = [], isLoading: pubsLoading } = useQuery({
     queryKey: ["publications"],
@@ -152,7 +154,11 @@ export default function Reseau() {
               {profils.map((m) => {
                 const color = getAvatarColor(m.nom || "");
                 return (
-                  <div key={m.id} className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow text-center">
+                  <div
+                    key={m.id}
+                    onClick={() => setSelectedMembre(m)}
+                    className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow text-center cursor-pointer hover:border-primary/40"
+                  >
                     <div className="h-16 bg-gradient-to-br from-amber-400/20 to-orange-500/10 relative">
                       {m.photo_couverture && <img src={m.photo_couverture} alt="" className="w-full h-full object-cover" />}
                     </div>
@@ -175,6 +181,9 @@ export default function Reseau() {
           )}
         </>
       )}
+
+      {/* Profile dialog */}
+      <MembreProfilDialog membre={selectedMembre} onClose={() => setSelectedMembre(null)} />
     </div>
   );
 }
