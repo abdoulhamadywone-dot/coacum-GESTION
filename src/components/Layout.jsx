@@ -125,13 +125,7 @@ export default function Layout() {
       {/* Sidebar desktop */}
       <aside className="hidden md:flex w-64 flex-col bg-sidebar text-sidebar-foreground shadow-2xl flex-shrink-0">
         <div className="p-6 border-b border-sidebar-border">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-sm shadow-lg amber-glow">C</div>
-            <div>
-              <h1 className="text-base font-bold tracking-tight leading-none gradient-text">COACUM</h1>
-              <p className="text-xs text-sidebar-foreground/50 mt-0.5">Cultures Urbaines</p>
-            </div>
-          </div>
+          <img src="https://media.base44.com/images/public/6a18cbfaee75eb22cc08c34e/7a0b01225_Capturedcran2026-07-26164850.png" alt="COACUM — Cultures Urbaines" className="h-12 w-auto" />
         </div>
 
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
@@ -222,10 +216,7 @@ export default function Layout() {
       {/* Mobile */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-border bg-card/80 backdrop-blur-sm no-print relative z-50">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-xs">C</div>
-            <span className="font-bold gradient-text">COACUM</span>
-          </div>
+          <img src="https://media.base44.com/images/public/6a18cbfaee75eb22cc08c34e/7a0b01225_Capturedcran2026-07-26164850.png" alt="COACUM — Cultures Urbaines" className="h-9 w-auto" />
           <div className="flex items-center gap-2">
             <NotificationsBell />
             <div className="relative">
@@ -259,10 +250,7 @@ export default function Layout() {
             <div className="md:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm no-print animate-in fade-in-0 duration-200" onClick={() => setMobileOpen(false)} />
             <div className="md:hidden fixed top-0 right-0 bottom-0 z-50 w-72 max-w-[80vw] bg-card border-l border-border shadow-2xl no-print flex flex-col animate-in slide-in-from-right duration-300">
               <div className="flex items-center justify-between px-4 py-4 border-b border-border">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-sm">C</div>
-                  <span className="font-bold gradient-text text-sm">COACUM</span>
-                </div>
+                <img src="https://media.base44.com/images/public/6a18cbfaee75eb22cc08c34e/7a0b01225_Capturedcran2026-07-26164850.png" alt="COACUM — Cultures Urbaines" className="h-10 w-auto" />
                 <button onClick={() => setMobileOpen(false)} className="p-2 rounded-lg hover:bg-muted">
                   <X className="h-5 w-5" />
                 </button>
