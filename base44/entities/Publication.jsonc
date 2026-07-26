@@ -1,0 +1,52 @@
+{
+  "name": "Publication",
+  "type": "object",
+  "properties": {
+    "titre": {
+      "type": "string",
+      "title": "Titre"
+    },
+    "contenu": {
+      "type": "string",
+      "title": "Contenu"
+    },
+    "image_url": {
+      "type": "string",
+      "title": "Image"
+    },
+    "membre_id": {
+      "type": "string",
+      "title": "ID Membre"
+    },
+    "membre_nom": {
+      "type": "string",
+      "title": "Nom du membre"
+    },
+    "membre_photo": {
+      "type": "string",
+      "title": "Photo du membre"
+    }
+  },
+  "required": [
+    "membre_id",
+    "membre_nom"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": null,
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

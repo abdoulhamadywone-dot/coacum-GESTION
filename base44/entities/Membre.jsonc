@@ -27,6 +27,30 @@
     "notes": {
       "type": "string",
       "title": "Notes"
+    },
+    "nom_utilisateur": {
+      "type": "string",
+      "title": "Nom d'utilisateur"
+    },
+    "mot_de_passe": {
+      "type": "string",
+      "title": "Mot de passe"
+    },
+    "photo_profil": {
+      "type": "string",
+      "title": "Photo de profil"
+    },
+    "photo_couverture": {
+      "type": "string",
+      "title": "Photo de couverture"
+    },
+    "statut_perso": {
+      "type": "string",
+      "title": "Statut personnel"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
     }
   },
   "required": [

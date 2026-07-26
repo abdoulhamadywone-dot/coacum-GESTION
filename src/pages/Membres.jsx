@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Plus, Search, Edit2, Trash2, UserCheck, UserX, ChevronLeft, ChevronRight, ArrowUp, ArrowDown, MessageCircle } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, UserCheck, UserX, ChevronLeft, ChevronRight, ArrowUp, ArrowDown, MessageCircle, KeyRound, Eye, Copy } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,6 +63,8 @@ export default function Membres() {
   const [sortKey, setSortKey] = useState("nom");
   const [sortDir, setSortDir] = useState("asc");
   const [filterStatut, setFilterStatut] = useState("all");
+  const [credentialsMembre, setCredentialsMembre] = useState(null);
+  const [generating, setGenerating] = useState(false);
 
   const { data: membres = [], isLoading } = useQuery({ queryKey: ["membres"], queryFn: () => base44.entities.Membre.list() });
   const { data: cotisations = [] } = useQuery({ queryKey: ["cotisations"], queryFn: () => base44.entities.Cotisation.list() });
@@ -99,6 +101,39 @@ export default function Membres() {
   const toggleSort = (key) => { if (sortKey === key) setSortDir(d => d === "asc" ? "desc" : "asc"); else { setSortKey(key); setSortDir("asc"); } setPage(1); };
   const SortIcon = ({ k }) => sortKey === k ? (sortDir === "asc" ? <ArrowUp className="h-3 w-3 inline" /> : <ArrowDown className="h-3 w-3 inline" />) : null;
 
+  const generateUsername = (nom) => {
+    return nom.toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]/g, '');
+  };
+
+  const generatePassword = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+    let pass = '';
+    for (let i = 0; i < 8; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    return pass;
+  };
+
+  const handleGenerateCredentials = async () => {
+    const without = membres.filter(m => !m.nom_utilisateur || !m.mot_de_passe);
+    if (without.length === 0) { toast.info("Tous les membres ont déjà des identifiants"); return; }
+    setGenerating(true);
+    try {
+      for (const m of without) {
+        await base44.entities.Membre.update(m.id, {
+          nom_utilisateur: m.nom_utilisateur || generateUsername(m.nom),
+          mot_de_passe: m.mot_de_passe || generatePassword(),
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ["membres"] });
+      toast.success(`${without.length} identifiant(s) généré(s)`);
+    } catch (err) {
+      toast.error("Erreur lors de la génération");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -106,7 +141,10 @@ export default function Membres() {
           <h1 className="text-2xl font-bold text-foreground">Membres</h1>
           <p className="text-sm text-muted-foreground">{filtered.length} / {membres.length} membres</p>
         </div>
-        {isAdmin && <Button onClick={openCreate} className="gap-2 amber-glow"><Plus className="h-4 w-4" /> Ajouter un membre</Button>}
+        <div className="flex gap-2">
+          {isAdmin && <Button variant="outline" onClick={handleGenerateCredentials} disabled={generating} className="gap-2">{generating ? <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" /> : <KeyRound className="h-4 w-4" />} Générer identifiants</Button>}
+          {isAdmin && <Button onClick={openCreate} className="gap-2 amber-glow"><Plus className="h-4 w-4" /> Ajouter</Button>}
+        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
@@ -191,6 +229,7 @@ export default function Membres() {
                       {isAdmin && (
                         <td className="p-3 text-right">
                           <div className="flex justify-end gap-1">
+                            <button onClick={() => setCredentialsMembre(m)} className="p-1.5 rounded-md hover:bg-muted transition-colors" title="Voir identifiants"><KeyRound className="h-3.5 w-3.5 text-amber-500" /></button>
                             <button onClick={() => openEdit(m)} className="p-1.5 rounded-md hover:bg-muted transition-colors"><Edit2 className="h-3.5 w-3.5 text-muted-foreground" /></button>
                             <button onClick={() => setDeleteId(m.id)} className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors"><Trash2 className="h-3.5 w-3.5 text-destructive" /></button>
                           </div>
@@ -236,6 +275,48 @@ export default function Membres() {
             <div><label className="text-sm font-medium">Notes</label><Input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
             <Button type="submit" className="w-full" disabled={createMembre.isPending || updateMembre.isPending}>{editing ? "Enregistrer" : "Ajouter"}</Button>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Credentials dialog */}
+      <Dialog open={!!credentialsMembre} onOpenChange={() => setCredentialsMembre(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Identifiants de {credentialsMembre?.nom}</DialogTitle></DialogHeader>
+          {credentialsMembre && (
+            <div className="space-y-4">
+              {(!credentialsMembre.nom_utilisateur || !credentialsMembre.mot_de_passe) && (
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg p-3 text-sm text-amber-700 dark:text-amber-400">
+                  ⚠️ Identifiants non générés. Cliquez sur "Générer identifiants" pour les créer.
+                </div>
+              )}
+              <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium mb-1">Nom d'utilisateur</p>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 text-sm font-mono bg-card border border-border rounded px-3 py-2">{credentialsMembre.nom_utilisateur || "—"}</code>
+                    {credentialsMembre.nom_utilisateur && (
+                      <button onClick={() => { navigator.clipboard.writeText(credentialsMembre.nom_utilisateur); toast.success("Copié"); }} className="p-2 rounded-md hover:bg-muted"><Copy className="h-4 w-4 text-muted-foreground" /></button>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium mb-1">Mot de passe</p>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 text-sm font-mono bg-card border border-border rounded px-3 py-2">{credentialsMembre.mot_de_passe || "—"}</code>
+                    {credentialsMembre.mot_de_passe && (
+                      <button onClick={() => { navigator.clipboard.writeText(credentialsMembre.mot_de_passe); toast.success("Copié"); }} className="p-2 rounded-md hover:bg-muted"><Copy className="h-4 w-4 text-muted-foreground" /></button>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="bg-muted/30 rounded-lg p-3 text-xs text-muted-foreground">
+                <p className="font-medium text-foreground mb-1">📋 Instructions à transmettre au membre :</p>
+                <p>1. Allez sur le site et cliquez sur "Espace Membre"</p>
+                <p>2. Connectez-vous avec ces identifiants</p>
+                <p>3. Après connexion, vous pourrez changer votre nom d'utilisateur et mot de passe</p>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

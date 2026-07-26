@@ -24,6 +24,10 @@ import Assistant from './pages/Assistant';
 import Galerie from './pages/Galerie';
 import MembreProfil from './pages/MembreProfil';
 import Bilan from './pages/Bilan';
+import MembreLogin from './pages/MembreLogin';
+import MembreLayout from './components/MembreLayout';
+import MonProfil from './pages/MonProfil';
+import Reseau from './pages/Reseau';
 import AdminRoute from '@/components/AdminRoute';
 
 const AuthenticatedApp = () => {
@@ -55,6 +59,14 @@ const AuthenticatedApp = () => {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      {/* Portail Membres (authentification propre aux membres, sans compte plateforme) */}
+      <Route path="/membre-login" element={<MembreLogin />} />
+      <Route element={<MembreLayout />}>
+        <Route path="/mon-profil" element={<MonProfil />} />
+        <Route path="/reseau" element={<Reseau />} />
+        <Route path="/galerie-membre" element={<Galerie />} />
+      </Route>
+
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         <Route element={<Layout />}>
           {/* Accessibles à tous les utilisateurs connectés */}
