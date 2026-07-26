@@ -21,6 +21,7 @@ import Articles from './pages/Articles';
 import ArticlesAdmin from './pages/ArticlesAdmin';
 import Administration from './pages/Administration';
 import Assistant from './pages/Assistant';
+import Galerie from './pages/Galerie';
 import MembreProfil from './pages/MembreProfil';
 import Bilan from './pages/Bilan';
 import AdminRoute from '@/components/AdminRoute';
@@ -60,6 +61,7 @@ const AuthenticatedApp = () => {
           <Route path="/evenements" element={<Evenements />} />
           <Route path="/articles" element={<Articles />} />
           <Route path="/assistant" element={<Assistant />} />
+          <Route path="/galerie" element={<Galerie />} />
 
           {/* Réservé aux admins */}
           <Route element={<AdminRoute />}>

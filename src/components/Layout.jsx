@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Wallet, Receipt, Calendar, LogOut, Menu, X, ShieldCheck, Newspaper, Sun, Moon, Bell, CheckCheck, MessageCircle, Settings, Scale } from "lucide-react";
+import { LayoutDashboard, Users, Wallet, Receipt, Calendar, LogOut, Menu, X, ShieldCheck, Newspaper, Sun, Moon, Bell, CheckCheck, MessageCircle, Settings, Scale, Images } from "lucide-react";
 import { useState, useCallback } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
@@ -17,6 +17,7 @@ const allNavItems = [
   { path: "/depenses", label: "Dépenses", icon: Receipt, adminOnly: true },
   { path: "/evenements", label: "Événements", icon: Calendar, adminOnly: false },
   { path: "/articles", label: "Actualités", icon: Newspaper, adminOnly: false },
+  { path: "/galerie", label: "Galerie", icon: Images, adminOnly: false },
   { path: "/assistant", label: "Assistant COACUM", icon: MessageCircle, adminOnly: false },
   { path: "/bilan", label: "Bilan Comptable", icon: Scale, adminOnly: true },
 ];
