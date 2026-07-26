@@ -1,17 +1,17 @@
 import { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Images, FileText, Grid3x3, LogIn, Search, Bookmark, Heart, MessageCircle, Share2, Users, Sparkles, Eye } from "lucide-react";
+import { Loader2, Search, Users, Sparkles, ArrowRight, Grid3x3, FileText, Images } from "lucide-react";
 import { Link } from "react-router-dom";
 import { membreAuth } from "@/lib/membreAuth";
 import MembreProfilDialog from "@/components/MembreProfilDialog";
 
 const AVATAR_COLORS = [
-  "from-amber-400 to-orange-500",
-  "from-rose-400 to-pink-600",
-  "from-sky-400 to-blue-600",
-  "from-emerald-400 to-teal-600",
-  "from-violet-400 to-purple-600",
+  "from-green-400 to-green-600",
+  "from-emerald-400 to-green-500",
+  "from-green-500 to-teal-600",
+  "from-teal-400 to-green-600",
+  "from-green-300 to-emerald-600",
 ];
 
 function getInitials(nom = "") {
@@ -73,312 +73,257 @@ export default function Reseau() {
     return result;
   }, [publications, filter, search]);
 
-  // Scène du jour = membre le plus actif (dernière publication)
-  const sceneDuJour = useMemo(() => {
+  const featuredMembre = useMemo(() => {
     if (publications.length === 0) return profils[0] || null;
     const lastPub = publications[0];
     return profils.find((p) => p.id === lastPub.membre_id) || profils[0] || null;
   }, [publications, profils]);
 
-  // Scène active = membre avec le plus de publications
-  const sceneActive = useMemo(() => {
-    if (publications.length === 0 || profils.length === 0) return null;
-    const counts = {};
-    publications.forEach((p) => {
-      if (p.membre_id) counts[p.membre_id] = (counts[p.membre_id] || 0) + 1;
-    });
-    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-    const topId = sorted[0]?.[0];
-    return profils.find((p) => p.id === topId) || null;
-  }, [publications, profils]);
-
-  const recentMembers = useMemo(() => profils.slice(0, 5), [profils]);
+  const lastPub = publications[0] || null;
 
   return (
-    <div className="max-w-6xl mx-auto space-y-5">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-600">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              En direct
-            </span>
-            <span className="text-xs text-muted-foreground">· {publications.length} pub.</span>
+    <div className="min-h-screen bg-white dark:bg-gray-950">
+
+      {/* ── HERO SECTION (green header + split layout) ── */}
+      <div className="relative">
+        {/* Green top bar */}
+        <div className="bg-[#22c55e] px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+            <span className="text-white text-sm font-semibold">{publications.length} publications · {profils.length} membres</span>
           </div>
-          <h1 className="text-2xl font-bold text-foreground">Réseau</h1>
-          <p className="text-sm text-muted-foreground">Fil, publications et interactions entre les membres.</p>
+          <div className="flex gap-1 bg-white/20 rounded-lg p-1">
+            <button
+              onClick={() => setView("feed")}
+              className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${view === "feed" ? "bg-white text-[#22c55e]" : "text-white"}`}
+            >Fil</button>
+            <button
+              onClick={() => setView("membres")}
+              className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${view === "membres" ? "bg-white text-[#22c55e]" : "text-white"}`}
+            >Membres</button>
+          </div>
         </div>
-        <div className="flex gap-1 bg-muted rounded-lg p-1">
-          <button
-            onClick={() => setView("feed")}
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${view === "feed" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
-          >
-            Fil
-          </button>
-          <button
-            onClick={() => setView("membres")}
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${view === "membres" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
-          >
-            Membres
-          </button>
+
+        {/* Hero body */}
+        <div className="bg-white dark:bg-gray-900 rounded-b-3xl shadow-sm mx-2 mb-6 overflow-hidden">
+          <div className="grid lg:grid-cols-2 gap-0 min-h-[360px]">
+            {/* Left: text */}
+            <div className="flex flex-col justify-center px-8 py-10">
+              <h1 className="text-5xl sm:text-6xl font-black text-black dark:text-white leading-none tracking-tight uppercase mb-4">
+                RÉSEAU<br />COACUM
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 text-base leading-relaxed max-w-sm mb-6">
+                Découvrez les créations, les œuvres et les actualités partagées par les membres de la communauté des cultures urbaines de Mauritanie.
+              </p>
+              {!membreAuth.isLoggedIn() ? (
+                <Link
+                  to="/membre-login"
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-[#22c55e] hover:text-green-700 transition-colors group"
+                >
+                  Rejoindre le réseau
+                  <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              ) : (
+                <Link
+                  to="/mon-profil"
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-[#22c55e] hover:text-green-700 transition-colors group"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  Publier une création
+                  <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              )}
+              <div className="mt-6 flex items-center gap-2">
+                <span className="text-xs text-gray-400">coacum.mr</span>
+                <div className="flex-1 h-px bg-black dark:bg-white" />
+                <ArrowRight className="h-3 w-3 text-gray-400" />
+              </div>
+            </div>
+
+            {/* Right: featured member photo */}
+            <div className="relative bg-[#22c55e]/10 flex items-center justify-center p-6">
+              {featuredMembre ? (
+                <div
+                  className="relative cursor-pointer group"
+                  onClick={() => setSelectedMembre(featuredMembre)}
+                >
+                  {featuredMembre.photo_profil ? (
+                    <img
+                      src={featuredMembre.photo_profil}
+                      alt={featuredMembre.nom}
+                      className="w-full max-w-xs h-64 object-cover rounded-2xl shadow-xl group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className={`w-48 h-48 rounded-2xl bg-gradient-to-br ${getAvatarColor(featuredMembre.nom)} flex items-center justify-center text-white text-5xl font-black shadow-xl`}>
+                      {getInitials(featuredMembre.nom)}
+                    </div>
+                  )}
+                  <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#22c55e] shadow" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#22c55e]/60" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#22c55e]/40" />
+                  </div>
+                  <div className="absolute top-3 right-3 bg-[#22c55e] text-white text-xs font-bold px-2 py-1 rounded-full">
+                    En vue
+                  </div>
+                </div>
+              ) : (
+                <div className="w-48 h-48 rounded-2xl bg-[#22c55e]/20 flex items-center justify-center">
+                  <Users className="h-16 w-16 text-[#22c55e]" />
+                </div>
+              )}
+              {featuredMembre && (
+                <div className="absolute bottom-6 left-6">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Membre actif</p>
+                  <p className="font-bold text-sm text-black dark:text-white">{featuredMembre.nom}</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-[1fr_300px] gap-6">
-        {/* Main column */}
-        <div className="space-y-5">
-          {view === "feed" ? (
-            <>
-              {/* Prompt card */}
-              {!membreAuth.isLoggedIn() ? (
-                <div className="border-2 border-dashed border-border rounded-xl p-4 text-center">
-                  <p className="text-sm text-muted-foreground">
-                    <Link to="/membre-login" className="text-primary font-semibold hover:underline">Connectez-vous</Link> pour publier et commenter sur le réseau.
-                  </p>
-                </div>
-              ) : (
-                <Link to="/mon-profil" className="flex items-center gap-3 border-2 border-dashed border-border rounded-xl p-4 hover:border-primary/40 transition-colors">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Sparkles className="h-5 w-5 text-primary" />
-                  </div>
-                  <span className="text-sm text-muted-foreground flex-1">Partagez une œuvre, une pensée, une création...</span>
-                  <span className="text-sm font-medium text-primary">Publier</span>
-                </Link>
-              )}
+      {/* ── MAIN CONTENT ── */}
+      <div className="px-4 pb-12 max-w-6xl mx-auto space-y-6">
 
-              {/* Search bar */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        {view === "feed" ? (
+          <>
+            {/* Search + filters */}
+            <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Rechercher des hashtags, du texte..."
-                  className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-input bg-card text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 transition-shadow"
+                  placeholder="Rechercher..."
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white text-sm focus:outline-none focus:border-[#22c55e] transition-colors"
                 />
               </div>
-
-              {/* Filter tabs */}
-              <div className="flex items-center justify-between flex-wrap gap-3">
-                <div className="flex gap-1.5 flex-wrap">
-                  {FILTERS.map((f) => (
-                    <button
-                      key={f.key}
-                      onClick={() => setFilter(f.key)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                        filter === f.key ? "bg-foreground text-background" : "bg-muted text-muted-foreground hover:bg-muted/80"
-                      }`}
-                    >
-                      <f.icon className="h-3.5 w-3.5" /> {f.label}
-                    </button>
-                  ))}
-                </div>
-                <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                  <Bookmark className="h-3.5 w-3.5" /> Mes favoris
-                </button>
+              <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
+                {FILTERS.map((f) => (
+                  <button
+                    key={f.key}
+                    onClick={() => setFilter(f.key)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
+                      filter === f.key ? "bg-[#22c55e] text-white" : "text-gray-600 dark:text-gray-400"
+                    }`}
+                  >
+                    <f.icon className="h-3.5 w-3.5" /> {f.label}
+                  </button>
+                ))}
               </div>
+            </div>
 
-              {/* Feed */}
-              {pubsLoading ? (
-                <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
-              ) : filteredPubs.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  <p className="text-lg font-medium">Aucune publication</p>
-                  <p className="text-sm mt-1">Les membres n'ont pas encore publié d'œuvres.</p>
-                </div>
-              ) : (
-                <div className="space-y-5">
-                  {filteredPubs.map((pub) => {
-                    const color = getAvatarColor(pub.membre_nom || "");
-                    const memberProfile = profils.find((p) => p.id === pub.membre_id);
-                    return (
-                      <div key={pub.id} className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                        {/* Post header */}
-                        <div className="flex items-center gap-3 p-4 pb-3">
-                          {pub.membre_photo ? (
-                            <img
-                              src={pub.membre_photo}
-                              alt={pub.membre_nom}
-                              className="w-10 h-10 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
-                              onClick={() => memberProfile && setSelectedMembre(memberProfile)}
-                            />
-                          ) : (
-                            <div
-                              onClick={() => memberProfile && setSelectedMembre(memberProfile)}
-                              className={`w-10 h-10 rounded-full bg-gradient-to-br ${color} flex items-center justify-center text-white text-sm font-bold cursor-pointer hover:opacity-80 transition-opacity`}
-                            >
-                              {getInitials(pub.membre_nom || "?")}
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <p
-                              className="text-sm font-semibold text-foreground cursor-pointer hover:text-primary transition-colors truncate"
-                              onClick={() => memberProfile && setSelectedMembre(memberProfile)}
-                            >
-                              {pub.membre_nom}
-                            </p>
-                            <p className="text-[10px] text-muted-foreground">
-                              {timeAgo(pub.created_date)} · {pub.image_url ? "Photo" : "Texte"}
-                            </p>
-                          </div>
+            {/* Publications feed */}
+            {pubsLoading ? (
+              <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-[#22c55e]" /></div>
+            ) : filteredPubs.length === 0 ? (
+              <div className="text-center py-16 text-gray-400">
+                <p className="text-xl font-bold text-black dark:text-white">Aucune publication</p>
+                <p className="text-sm mt-1">Les membres n'ont pas encore partagé de créations.</p>
+              </div>
+            ) : (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {filteredPubs.map((pub) => {
+                  const memberProfile = profils.find((p) => p.id === pub.membre_id);
+                  const color = getAvatarColor(pub.membre_nom || "");
+                  return (
+                    <div
+                      key={pub.id}
+                      className="bg-white dark:bg-gray-900 border-2 border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden hover:border-[#22c55e] hover:shadow-lg transition-all duration-200 cursor-pointer"
+                      onClick={() => memberProfile && setSelectedMembre(memberProfile)}
+                    >
+                      {pub.image_url ? (
+                        <img src={pub.image_url} alt={pub.titre || "Publication"} className="w-full h-48 object-cover" loading="lazy" />
+                      ) : (
+                        <div className="w-full h-32 bg-[#22c55e]/10 flex items-center justify-center">
+                          <FileText className="h-10 w-10 text-[#22c55e]/40" />
                         </div>
-
-                        {/* Post content */}
-                        <div className="px-4 pb-2">
-                          {pub.titre && <h3 className="font-semibold text-sm mb-1">{pub.titre}</h3>}
-                          {pub.contenu && <p className="text-sm text-foreground whitespace-pre-wrap">{pub.contenu}</p>}
-                        </div>
-
-                        {pub.image_url && (
-                          <div className="mt-2">
-                            <img src={pub.image_url} alt={pub.titre || "Publication"} className="w-full max-h-96 object-cover" loading="lazy" />
+                      )}
+                      <div className="p-4">
+                        {pub.titre && <h3 className="font-black text-sm text-black dark:text-white uppercase mb-1 truncate">{pub.titre}</h3>}
+                        {pub.contenu && <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">{pub.contenu}</p>}
+                        <div className="mt-3 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            {pub.membre_photo ? (
+                              <img src={pub.membre_photo} alt={pub.membre_nom} className="w-6 h-6 rounded-full object-cover" />
+                            ) : (
+                              <div className={`w-6 h-6 rounded-full bg-gradient-to-br ${color} flex items-center justify-center text-white text-[9px] font-bold`}>
+                                {getInitials(pub.membre_nom || "?")}
+                              </div>
+                            )}
+                            <span className="text-xs font-semibold text-black dark:text-white truncate max-w-[100px]">{pub.membre_nom}</span>
                           </div>
-                        )}
-
-                        {/* Post footer */}
-                        <div className="flex items-center gap-1 px-4 py-3 border-t border-border mt-2">
-                          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
-                            <Heart className="h-4 w-4" /> J'aime
-                          </button>
-                          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
-                            <MessageCircle className="h-4 w-4" /> Commenter
-                          </button>
-                          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
-                            <Share2 className="h-4 w-4" /> Partager
-                          </button>
+                          <span className="text-[10px] text-gray-400">{timeAgo(pub.created_date)}</span>
+                        </div>
+                        <div className="mt-3 flex items-center gap-1 text-[10px] text-[#22c55e] font-semibold">
+                          <span>Voir le profil</span>
+                          <ArrowRight className="h-3 w-3" />
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-            </>
-          ) : (
-            /* Members grid */
-            <>
-              {profilsLoading ? (
-                <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
-              ) : profils.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  <p className="text-lg font-medium">Aucun membre</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  {profils.map((m) => {
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        ) : (
+          /* ── MEMBRES VIEW ── */
+          <>
+            {profilsLoading ? (
+              <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-[#22c55e]" /></div>
+            ) : profils.length === 0 ? (
+              <div className="text-center py-16">
+                <p className="text-xl font-black text-black dark:text-white uppercase">Aucun membre</p>
+              </div>
+            ) : (
+              <>
+                <h2 className="text-4xl font-black text-black dark:text-white uppercase tracking-tight">MEMBRES</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {profils.map((m, idx) => {
                     const color = getAvatarColor(m.nom || "");
+                    const pubCount = publications.filter(p => p.membre_id === m.id).length;
                     return (
                       <div
                         key={m.id}
                         onClick={() => setSelectedMembre(m)}
-                        className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:border-primary/40 transition-all text-center cursor-pointer"
+                        className="bg-white dark:bg-gray-900 border-2 border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden hover:border-[#22c55e] hover:shadow-xl transition-all duration-200 cursor-pointer group"
                       >
-                        <div className="h-16 bg-gradient-to-br from-amber-400/20 to-orange-500/10 relative">
-                          {m.photo_couverture && <img src={m.photo_couverture} alt="" className="w-full h-full object-cover" />}
+                        {/* Cover */}
+                        <div className="h-20 bg-[#22c55e] relative overflow-hidden">
+                          {m.photo_couverture && <img src={m.photo_couverture} alt="" className="w-full h-full object-cover opacity-70" />}
+                          {pubCount > 0 && (
+                            <span className="absolute top-2 right-2 bg-black/70 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                              {pubCount} pub.
+                            </span>
+                          )}
                         </div>
-                        <div className="px-3 pb-4 -mt-8">
+                        {/* Avatar */}
+                        <div className="px-3 pb-4 -mt-7">
                           {m.photo_profil ? (
-                            <img src={m.photo_profil} alt={m.nom} className="w-14 h-14 rounded-full object-cover border-4 border-card mx-auto" />
+                            <img src={m.photo_profil} alt={m.nom} className="w-14 h-14 rounded-xl object-cover border-4 border-white dark:border-gray-900 group-hover:border-[#22c55e] transition-colors" />
                           ) : (
-                            <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${color} flex items-center justify-center text-white text-base font-bold border-4 border-card mx-auto`}>
+                            <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center text-white text-base font-black border-4 border-white dark:border-gray-900`}>
                               {getInitials(m.nom || "?")}
                             </div>
                           )}
-                          <h3 className="font-semibold text-sm mt-2 text-foreground truncate">{m.nom}</h3>
-                          {m.statut_perso && <p className="text-xs text-amber-600 dark:text-amber-400 truncate">{m.statut_perso}</p>}
-                          {m.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{m.description}</p>}
+                          <h3 className="font-black text-sm text-black dark:text-white uppercase mt-2 truncate">{m.nom}</h3>
+                          {m.statut_perso && <p className="text-[10px] text-[#22c55e] font-semibold truncate">{m.statut_perso}</p>}
+                          {m.description && <p className="text-[10px] text-gray-500 mt-1 line-clamp-2">{m.description}</p>}
+                          <div className="mt-3 flex items-center gap-1 text-[10px] font-bold text-[#22c55e]">
+                            <span>Voir profil</span>
+                            <ArrowRight className="h-3 w-3" />
+                          </div>
                         </div>
                       </div>
                     );
                   })}
                 </div>
-              )}
-            </>
-          )}
-        </div>
-
-        {/* Sidebar */}
-        <aside className="space-y-4 hidden lg:block">
-          {/* Scène du jour */}
-          {sceneDuJour && (
-            <div className="bg-card border border-border rounded-2xl p-4 shadow-sm">
-              <h3 className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wide mb-3">Scène du jour</h3>
-              <div className="flex flex-col items-center text-center">
-                {sceneDuJour.photo_profil ? (
-                  <img src={sceneDuJour.photo_profil} alt={sceneDuJour.nom} className="w-16 h-16 rounded-full object-cover mb-2" />
-                ) : (
-                  <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${getAvatarColor(sceneDuJour.nom)} flex items-center justify-center text-white text-lg font-bold mb-2`}>
-                    {getInitials(sceneDuJour.nom || "?")}
-                  </div>
-                )}
-                <p className="text-sm font-semibold text-foreground">{sceneDuJour.nom}</p>
-                {sceneDuJour.statut_perso && <p className="text-xs text-muted-foreground mt-0.5">{sceneDuJour.statut_perso}</p>}
-                <button
-                  onClick={() => setSelectedMembre(sceneDuJour)}
-                  className="mt-3 flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors"
-                >
-                  <Eye className="h-3.5 w-3.5" /> Voir le profil
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Scène active */}
-          {sceneActive && sceneActive.id !== sceneDuJour?.id && (
-            <div className="bg-card border border-border rounded-2xl p-4 shadow-sm">
-              <h3 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide mb-2">Scène active</h3>
-              <div className="flex items-center gap-3">
-                {sceneActive.photo_profil ? (
-                  <img src={sceneActive.photo_profil} alt={sceneActive.nom} className="w-10 h-10 rounded-full object-cover" />
-                ) : (
-                  <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${getAvatarColor(sceneActive.nom)} flex items-center justify-center text-white text-xs font-bold`}>
-                    {getInitials(sceneActive.nom || "?")}
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-foreground truncate">{sceneActive.nom}</p>
-                  <p className="text-[10px] text-muted-foreground">Sur le fil</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Membres récents */}
-          <div className="bg-card border border-border rounded-2xl p-4 shadow-sm">
-            <h3 className="text-xs font-bold text-foreground uppercase tracking-wide mb-3 flex items-center gap-1.5">
-              <Users className="h-3.5 w-3.5" /> Membres
-            </h3>
-            <div className="space-y-2">
-              {recentMembers.map((m) => {
-                const color = getAvatarColor(m.nom);
-                return (
-                  <div key={m.id} onClick={() => setSelectedMembre(m)} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 -mx-1 px-1 py-1.5 rounded-lg transition-colors">
-                    {m.photo_profil ? (
-                      <img src={m.photo_profil} alt={m.nom} className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
-                    ) : (
-                      <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${color} flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0`}>
-                        {getInitials(m.nom || "?")}
-                      </div>
-                    )}
-                    <span className="text-xs font-medium text-foreground truncate">{m.nom}</span>
-                  </div>
-                );
-              })}
-            </div>
-            <button onClick={() => setView("membres")} className="mt-3 text-xs font-medium text-primary hover:underline">
-              Voir tous les membres →
-            </button>
-          </div>
-
-          {/* Adhérez */}
-          <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200 dark:border-amber-800 rounded-2xl p-4 text-center">
-            <h3 className="text-sm font-bold text-foreground mb-1">Adhérez à la COACUM</h3>
-            <p className="text-xs text-muted-foreground mb-3">Carte membre, événements gratuits et accès au réseau.</p>
-            <button className="w-full px-4 py-2 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 text-white text-sm font-semibold hover:from-amber-600 hover:to-orange-600 transition-all shadow-md">
-              Adhérer
-            </button>
-          </div>
-        </aside>
+              </>
+            )}
+          </>
+        )}
       </div>
 
       {/* Profile dialog */}
